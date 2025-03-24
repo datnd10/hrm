@@ -1,0 +1,116 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- Button Component -->
+
+
+    <!-- Search Section -->
+    <section class="data-management-wrapper">
+      <div class="card">
+        <!-- Header -->
+        <div>
+          <!-- <span>Danh sách jobs</span> -->
+          <!-- Action Component -->
+          <app-action [tableTitle]="tableTitle" [showActionButton]="false">
+          </app-action>
+        </div>
+
+        <div class="card-body">
+          <div class="users-list-filter">
+            <form>
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <ng-select [items]="statusOptions" [(ngModel)]="searchByStatus" name="status" bindLabel="name"
+                      bindValue="value" placeholder=" Chọn trạng thái" (change)="filterByCategory($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <input type="text" [(ngModel)]="searchByName" #searchInput name="search" placeholder="Tìm kiếm"
+                      class="form-control" (keyup.enter)="onSearch(searchInput.value)" />
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div *ngIf="loading" class="text-center my-5">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div>Đang tải dữ liệu...</div>
+        </div>
+
+        <app-table *ngIf="!loading" [showActionButton]="false" [tableData]="jobsArray" [columnArray]="columnArray"
+          [totalItems]="totalItems" [itemsPerPage]="itemsPerPage" [currentPage]="currentPage" [totalPages]="totalPage"
+          (onPageChange)="onPageChange($event)" (onItemsPerPageChange)="onItemsPerPageChange($event)"
+          (onEdit)="editExpenseType($event)" (onDelete)="deleteExpenseType($event)" (onView)="viewJob($event)"
+          (onSortChange)="onSortChange($event)" (onSelectedItemsChange)="handleSelectedItemsChange($event)">
+        </app-table>
+      </div>
+    </section>
+
+  </div>
+
+
+  <!-- New expense type -->
+
+  <ng-template #modalBasic let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title" id="myModalLabel1">
+        Thông tin chi tiết
+      </h4>
+      <button type="button" class="close" (click)="modal.dismiss('Cross click')" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body" tabindex="0" ngbAutofocus>
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+      <div class="form-area" *ngIf="!modalLoading">
+        <table class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <!-- <th>Hành động</th> -->
+              <th>Mô tả</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let job of selectedJob.jobItems">
+              <!-- <td>
+                {{ selectedJob.type === 'IMPORT_SALARY_EXPENSE' ? 'Đọc dữ liệu từ Excel' : 'Hành động khác' }}
+              </td> -->
+              <td>
+                <!-- Mô tả -->
+                {{ job.message }}
+              </td>
+              <td>
+                <!-- Trạng thái -->
+                <span [ngClass]="{
+                    'text-success': job.status === 'COMPLETED',
+                    'text-warning': job.status === 'PENDING',
+                    'text-danger': job.status === 'FAILED'
+                  }">
+                  {{
+                  {
+                  COMPLETED: 'Thành công',
+                  PENDING: 'Đang xử lý',
+                  FAILED: 'Thất bại'
+                  }[job.status]
+                  }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-template>
+
+
+</div>

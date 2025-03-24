@@ -1,0 +1,182 @@
+<div class="card">
+  <table class="table table-hover" [ngClass]="{ 'table-responsive': tableData && tableData?.length > 0 }">
+    <thead>
+      <tr>
+        <!-- Cột checkbox -->
+        <th *ngIf="showActionButton" class="align-middle" style="width: 50px">
+          <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()" />
+        </th>
+
+        <!-- Cột Thao Tác -->
+        <th *ngIf="showActionButton" class="align-middle" style="width: 150px">
+          <div class="d-flex align-items-center justify-content-center">
+            <span>Thao Tác</span>
+          </div>
+        </th>
+
+        <!-- Các cột còn lại -->
+        <th *ngFor="let column of columnArray" class="align-middle">
+          <div class="d-flex align-items-center justify-content-between">
+            <span>{{ column.header }}</span>
+            <div class="ml-2 d-flex flex-column">
+              <!-- Mũi tên lên -->
+              <div (click)="sortTable(column.fieldName, 'ASC')" class="cursor-pointer">
+                <i data-feather="chevron-up"></i>
+              </div>
+
+              <!-- Mũi tên xuống -->
+              <div (click)="sortTable(column.fieldName, 'DESC')" class="cursor-pointer">
+                <i data-feather="chevron-down"></i>
+              </div>
+            </div>
+          </div>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <!-- Kiểm tra nếu có dữ liệu -->
+      <ng-container *ngIf="tableData && tableData?.length > 0; else noData">
+        <tr *ngFor="let data of tableData; let sr = index">
+          <td *ngIf="showActionButton">
+            <!-- Checkbox cho mỗi bản ghi -->
+            <input type="checkbox" [(ngModel)]="data.isChecked" (change)="toggleSelectSingle()" />
+          </td>
+          <td *ngIf="showActionButton">
+            <div class="d-flex justify-content-between">
+              <button type="button" (click)="viewRecord(data)" class="btn btn-sm btn-icon btn-blue"
+                title="Xem chi tiết">
+                <i data-feather="file-text"></i>
+              </button>
+
+              <button type="button" (click)="editRecord(data)" class="btn btn-sm btn-icon btn-purple" title="Chỉnh sửa">
+                <i data-feather="edit"></i>
+              </button>
+
+              <button type="button" (click)="deleteRecord(data)" class="btn btn-sm btn-icon btn-red" title="Xóa">
+                <i data-feather="trash"></i>
+              </button>
+
+              <ng-container *ngIf="showChangeStatusButton">
+                <button type="button" (click)="approveRecord(data)" class="btn btn-sm btn-icon btn-green" title="Duyệt">
+                  <i data-feather="check"></i>
+                </button>
+                <button type="button" (click)="rejectRecord(data)" class="btn btn-sm btn-icon btn-orange"
+                  title="Từ chối">
+                  <i data-feather="x-circle"></i>
+                </button>
+              </ng-container>
+            </div>
+
+          </td>
+          <td *ngFor="let column of columnArray; let i = index" (click)="i === 0 ? viewRecord(data) : null"
+            [ngClass]="{ 'clickable text-info': i === 0 }" [style.width]="column.width">
+            <span *ngIf="column.fieldName === 'date' || column.fieldName === 'createdAt'; else normalData">
+              {{ data[column.fieldName] | date : "HH:mm:ss dd/MM/yyyy" }}
+            </span>
+            <ng-template #normalData>
+              <span *ngIf="column.fieldName === 'status'" [ngClass]="{
+                  'text-success':
+                    data[column.fieldName] === 'APPROVED' ||
+                    data[column.fieldName] === 'ACTIVE' ||
+                    data[column.fieldName] === 'COMPLETED',
+                  'text-warning': data[column.fieldName] === 'PENDING',
+                  'text-danger':
+                    data[column.fieldName] === 'REJECTED' ||
+                    data[column.fieldName] === 'INACTIVE' ||
+                    data[column.fieldName] === 'FAILED'
+                }">
+                {{
+                {
+                APPROVED: "Đã duyệt",
+                PENDING: "Chưa duyệt",
+                REJECTED: "Từ chối",
+                ACTIVE: "Hoạt động",
+                INACTIVE: "Không hoạt động",
+                COMPLETED: "Thành công",
+                FAILED: "Không thành công"
+                }[data[column.fieldName]] || "Không xác định"
+                }}
+              </span>
+
+              <!-- Format for totalMoney field -->
+              <span *ngIf="
+                  column.fieldName === 'totalAmount' ||
+                  column.fieldName === 'salary' ||
+                  column.fieldName === 'balance'
+                ">
+                {{ data[column.fieldName] | number : "1.0-0" }} đ
+              </span>
+
+              <!-- Default data display -->
+              <span *ngIf="
+                  column.fieldName !== 'status' &&
+                  column.fieldName !== 'totalAmount' &&
+                  column.fieldName !== 'salary' &&
+                  column.fieldName !== 'balance'
+                ">
+                {{ data[column.fieldName] || null }}
+              </span>
+            </ng-template>
+          </td>
+        </tr>
+      </ng-container>
+
+      <!-- Hiển thị thông báo không có dữ liệu -->
+      <ng-template #noData>
+        <tr>
+          <td colspan="100%" class="text-center">Không có dữ liệu</td>
+        </tr>
+      </ng-template>
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination controls and Items Per Page -->
+<div *ngIf="tableData && tableData?.length > 0" class="card">
+  <div class="card-body">
+    <div class="row d-flex justify-content-between">
+      <!-- Số bản ghi mỗi trang -->
+      <div class="col-md-3 d-flex align-items-center">
+        <label for="itemsPerPage" class="me-2">Xem</label>
+        <ng-select [(ngModel)]="itemsPerPage" (change)="changeItemsPerPage()" [clearable]="false"
+          class="w-auto ng-select-custom mx-1">
+          <ng-option *ngFor="let option of [1, 2, 5, 10]" [value]="option">{{
+            option
+            }}</ng-option>
+        </ng-select>
+        <label for="itemsPerPage" class="ms-2">mục trên {{totalItems}} kết quả</label>
+      </div>
+
+      <!-- Phân trang -->
+      <div class="col-md-9 d-flex justify-content-end">
+        <nav aria-label="Page navigation">
+          <ul class="pagination">
+            <!-- Nút trước -->
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" href="#" (click)="goToPreviousPage($event)">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            <!-- Các trang -->
+            <li *ngFor="let page of pagesArray" [class.active]="page === currentPage" [class.disabled]="page === '...'"
+              class="page-item">
+              <a class="page-link" href="#" *ngIf="page !== '...'" (click)="goToPage($event, page)">
+                {{ page }}
+              </a>
+              <span class="page-link" *ngIf="page === '...'">{{ page }}</span>
+            </li>
+
+            <!-- Nút sau -->
+            <li class="page-item" [class.disabled]="currentPage === totalPages || totalPages === 0">
+              <a class="page-link" href="#" (click)="goToNextPage($event)">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>

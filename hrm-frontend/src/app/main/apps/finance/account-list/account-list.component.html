@@ -1,0 +1,308 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <div>
+          <!-- <span>Danh sách jobs</span> -->
+          <!-- Action Component -->
+          <app-action [tableData]="bankAccountArrays" [tableTitle]="tableTitle" [showActionButton]="true"
+            [showExportImportButton]="false" [showChangeStatusButton]="false" [anySelected]="anySelected.bind(this)"
+            (onAdd)="addBankAccount()" (onSendSelected)="handleSendSelected()">
+          </app-action>
+        </div>
+        <div class="card-body">
+          <div class="users-list-filter">
+            <form>
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <ng-select [items]="filterBankList" [(ngModel)]="searchByBankName" name="status"
+                      bindLabel="bankName" bindValue="code" placeholder=" Chọn Ngân Hàng"
+                      (change)="filterByBankName($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <input type="text" [(ngModel)]="searchByAccountName" #searchInput name="search"
+                      placeholder="Tìm kiếm" class="form-control" (keyup.enter)="onSearch(searchInput.value)" />
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div>
+          <div *ngIf="loading" class="text-center my-5">
+            <!-- Bạn có thể thêm một spinner ở đây nếu muốn -->
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div>Đang tải dữ liệu...</div>
+          </div>
+
+          <app-table *ngIf="!loading" [showActionButton]="true" [tableTitle]="tableTitle"
+            [tableData]="bankAccountArrays" [columnArray]="columnArray" [totalItems]="totalItems"
+            [itemsPerPage]="itemsPerPage" [currentPage]="currentPage" [totalPages]="totalPage"
+            (onPageChange)="onPageChange($event)" (onItemsPerPageChange)="onItemsPerPageChange($event)"
+            (onEdit)="editBankAccount($event)" (onDelete)="deleteBankAccount($event)"
+            (onSelectedItemsChange)="handleSelectedItemsChange($event)" (onView)="viewBankAccount($event)"
+            (onSortChange)="onSortChange($event)"></app-table>
+        </div>
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+
+  <!--/ New User Sidebar -->
+</div>
+
+<ng-template #modalAddEdit let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="myModalLabel1">
+      <ng-container *ngIf="modalMode === 'add'">
+        Thêm mới tài khoản ngân hàng
+      </ng-container>
+      <ng-container *ngIf="modalMode === 'edit'">
+        Chỉnh sửa tài khoản ngân hàng
+      </ng-container>
+      <ng-container *ngIf="modalMode === 'view'">
+        Xem chi tiết tài khoản ngân hàng
+      </ng-container>
+    </h4>
+    <button type="button" class="close" (click)="onCloseModal(modal)" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body" tabindex="0" ngbAutofocus>
+    <div *ngIf="modalLoading" class="text-center my-3">
+      <span class="spinner-border spinner-border-lg"></span> Đang tải dữ liệu...
+    </div>
+    <div class="form-area" *ngIf="!modalLoading">
+      <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+        <!-- Tên tài khoản -->
+        <div class="form-row">
+          <!-- <div class="form-group col-md-6">
+            <label for="branchId">Chi nhánh <span class="text-danger">(*)</span></label>
+            <ng-select [items]="branchList" bindLabel="branchName" bindValue="id" formControlName="branchId"
+              placeholder="Chọn chi nhánh" [ngClass]="{
+                'is-invalid':
+                  form.controls['branchId'].touched &&
+                  form.controls['branchId'].invalid,
+                'is-valid':
+                  form.controls['branchId'].touched &&
+                  form.controls['branchId'].valid
+              }"></ng-select>
+            <div *ngIf="
+                form.controls['branchId'].touched &&
+                form.controls['branchId'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['branchId'].errors?.required">
+                Chi nhánh là bắt buộc
+              </div>
+            </div>
+          </div> -->
+
+          <div class="form-group col-md-6">
+            <label for="bankName">Ngân hàng <span class="text-danger">(*)</span></label>
+
+            <!-- Using ng-select for bank dropdown -->
+            <ng-select [items]="bankList" bindLabel="bankName" bindValue="code" formControlName="bankName"
+              placeholder="Chọn ngân hàng" [ngClass]="{
+                'is-invalid':
+                  form.controls['bankName'].touched &&
+                  form.controls['bankName'].invalid,
+                'is-valid':
+                  form.controls['bankName'].touched &&
+                  form.controls['bankName'].valid
+              }">
+            </ng-select>
+
+            <!-- Validation message -->
+            <div *ngIf="
+                form.controls['bankName'].touched &&
+                form.controls['bankName'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['bankName'].errors?.required">
+                Ngân hàng là bắt buộc
+              </div>
+            </div>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="accountName">Tên tài khoản <span class="text-danger">(*)</span></label>
+            <input type="text" class="form-control" formControlName="accountName" placeholder="Tên tài khoản" [ngClass]="{
+                'is-invalid':
+                  form.controls['accountName'].touched &&
+                  form.controls['accountName'].invalid,
+                'is-valid':
+                  form.controls['accountName'].touched &&
+                  form.controls['accountName'].valid
+              }" />
+            <div *ngIf="
+                form.controls['accountName'].touched &&
+                form.controls['accountName'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['accountName'].errors?.required">
+                Tên tài khoản là bắt buộc
+              </div>
+              <div *ngIf="
+                  form.controls['accountName'].errors?.minlength ||
+                  form.controls['accountName'].errors?.maxlength
+                ">
+                Tên tài khoản phải có ít nhất 3 ký tự và tối đa 100 ký tự
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Số tài khoản -->
+          <div class="form-group col-md-4">
+            <label for="accountNumber">Số tài khoản <span class="text-danger">(*)</span></label>
+            <input type="text" class="form-control" formControlName="accountNumber" placeholder="Số tài khoản"
+              [ngClass]="{
+                'is-invalid':
+                  form.controls['accountNumber'].touched &&
+                  form.controls['accountNumber'].invalid,
+                'is-valid':
+                  form.controls['accountNumber'].touched &&
+                  form.controls['accountNumber'].valid
+              }" />
+            <!-- Validation message for required and other default errors -->
+            <div *ngIf="
+                form.controls['accountNumber'].touched &&
+                form.controls['accountNumber'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['accountNumber'].errors?.required">
+                Số tài khoản là bắt buộc
+              </div>
+              <div *ngIf="form.controls['accountNumber'].errors?.pattern">
+                Số tài khoản chỉ được chứa các chữ số
+              </div>
+              <!-- Custom error message from the server -->
+              <div *ngIf="form.controls['accountNumber'].errors?.apiError">
+                {{ form.controls["accountNumber"].errors.apiError }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Số dư -->
+          <div class="form-group col-md-4">
+            <label for="balance">Số dư <span class="text-danger">(*)</span></label>
+            <input type="text" class="form-control" formControlName="balance" placeholder="Số dư" appCurrencyFormat
+              [ngClass]="{
+                'is-invalid':
+                  form.controls['balance'].touched &&
+                  form.controls['balance'].invalid,
+                'is-valid':
+                  form.controls['balance'].touched &&
+                  form.controls['balance'].valid
+              }" />
+            <div *ngIf="
+                form.controls['balance'].touched &&
+                form.controls['balance'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['balance'].errors?.required">
+                Số dư là bắt buộc
+              </div>
+            </div>
+          </div>
+
+          <!-- Ngày khởi tạo -->
+          <div class="form-group col-md-4">
+            <label for="closingDate">Ngày chốt số dư <span class="text-danger">(*)</span></label>
+            <input type="datetime-local" class="form-control" formControlName="closingDate"
+              placeholder="Ngày chốt số dư" [ngClass]="{
+                'is-invalid':
+                  form.controls['closingDate'].touched &&
+                  form.controls['closingDate'].invalid,
+                'is-valid':
+                  form.controls['closingDate'].touched &&
+                  form.controls['closingDate'].valid
+              }" />
+            <div *ngIf="
+                form.controls['closingDate'].touched &&
+                form.controls['closingDate'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['closingDate'].errors?.required">
+                Ngày khởi tạo là bắt buộc
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer pt-1">
+          <!-- Nếu là chế độ view, chỉ có nút đóng -->
+          <button *ngIf="modalMode === 'view'" type="button" class="btn btn-secondary" (click)="modal.close()">
+            Đóng
+          </button>
+          <!-- Nếu là chế độ add hoặc edit, hiển thị nút lưu -->
+          <button *ngIf="modalMode !== 'view'" type="submit" class="btn btn-primary float-right"
+            [disabled]="form.invalid || formLoading" (click)="onSubmitReactiveForm(modal)">
+            <span *ngIf="formLoading" class="spinner-border spinner-border-sm mr-1"></span>
+            Lưu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #modalDelete let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Xác nhận xóa</h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p *ngIf="selectedEmployee">
+      Bạn có chắc chắn muốn xóa tài khoản
+      <strong>{{ selectedEmployee?.fullName }}</strong> không?
+    </p>
+    <p *ngIf="!selectedEmployee">
+      Bạn có chắc chắn muốn xóa các tài khoản đã chọn không?
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+      Hủy
+    </button>
+    <button type="button" class="btn btn-danger" (click)="deleteSelectedAccountBank(modal)" [disabled]="deleteLoading">
+      <span *ngIf="deleteLoading" class="spinner-border spinner-border-sm mr-1"></span>
+      Xóa
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #modalView let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title ">Xem chi tiết tài khoản</h4>
+    <button type="button" class="close" (click)="modal.dismiss()" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="modalLoading" class="text-center my-3">
+      <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+      liệu...
+    </div>
+    <div *ngIf="!modalLoading">
+      <table class="table table-bordered">
+        <tbody>
+          <ng-container *ngFor="let field of expenseTypeFields">
+            <tr>
+              <td><strong>{{ field.label }}</strong></td>
+              <td>{{ field.value || "Chưa có dữ liệu" }}</td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        Đóng
+      </button>
+    </div>
+  </div>
+</ng-template>

@@ -1,0 +1,14 @@
+@import "@core/scss/angular/libs/datatables.component.scss";
+@import "@core/scss/base/pages/app-user.scss";
+@import "@core/scss/angular/libs/select.component.scss";
+@import "~ngx-toastr/toastr.css";
+@import "@core/scss/angular/libs/flatpickr.component.scss";
+.container-fluid {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+.label-custom {
+  color: #d0d2d6;
+  font-size: 14px;
+}

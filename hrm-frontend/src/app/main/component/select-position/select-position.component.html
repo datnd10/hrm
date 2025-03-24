@@ -1,0 +1,81 @@
+<div>
+    <ng-select [items]="positions" bindLabel="positionName" bindValue="id" placeholder="Chọn chức vụ"
+        (change)="onPositionChange($event)" [compareWith]="comparePositions" [(ngModel)]="selectedPosition"
+        (blur)="onBlur()" [disabled]="isDisabled">
+    </ng-select>
+
+    <ng-template #modalAddPosition let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="myModalLabel1">
+                Thêm mới chức vụ
+            </h4>
+            <button type="button" class="close" (click)="onClosePositionModal(modal)" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body" tabindex="0" ngbAutofocus>
+            <div class="form-area">
+                <form [formGroup]="positionForm" (ngSubmit)="onSubmitPositionReactiveForm(modal)">
+                    <div class="form-group">
+                        <label for="branch">Chi nhánh: <span class="text-danger">(*)</span></label>
+                        <app-select-branch (branchChanged)="onBranchChange($event)"
+                            (branchAdded)="onBranchAdded($event)" (branchBlurred)="onBranchBlur()"
+                            [ngClass]="{'is-invalid': positionForm.get('branchName')?.touched && positionForm.get('branchName')?.invalid}"></app-select-branch>
+                        <div *ngIf="positionForm.get('branchName')?.touched && positionForm.get('branchName')?.invalid"
+                            class="invalid-feedback">
+                            Chi nhánh là bắt buộc
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parentDepartment">Phòng ban: </label>
+                        <app-select-department [selectedBranch]="seletedBranchModalAdd"
+                            [selectedDepartment]="selectedDepartment" (departmentChanged)="onDepartmentChanged($event)"
+                            (departmentAdded)="onDepartmentAdded($event)" (departmentBlurred)="onDepartmentBlurred()"
+                            [isDisabled]="isDepartmentDisabled"
+                            [ngClass]="{'is-invalid': positionForm.get('departmentId')?.touched && positionForm.get('departmentId')?.invalid}"></app-select-department>
+                        <div *ngIf="
+                positionForm.get('departmentId').touched &&
+                positionForm.get('departmentId').invalid
+              " class="invalid-feedback">
+                            Phòng ban là bắt buộc
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="positionName">Tên chức vụ:<span class="text-danger">(*)</span></label>
+                        <input type="text" class="form-control" placeholder="Tên chức vụ"
+                            formControlName="positionName" />
+                        <div *ngIf="
+                            positionForm.get('positionName').touched &&
+                            positionForm.get('positionName').invalid
+                          " style="color: #e74c3c; margin-top: 5px; font-size: 14px">
+                            <div *ngIf="positionForm.get('positionName').errors?.required">
+                                Tên chức vụ là bắt buộc
+                            </div>
+                            <div *ngIf="positionForm.controls['positionName'].errors?.apiError">
+                                <div *ngFor="
+                                let error of positionForm.controls['positionName'].errors?.apiError
+                              ">
+                                    {{ error }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" (click)="onClosePositionModal(modal)">
+                            Đóng
+                        </button>
+                        <button type="submit" class="btn btn-primary"
+                            [disabled]="positionForm.invalid || formDepartmentLoading">
+                            <span *ngIf="formDepartmentLoading" class="spinner-border spinner-border-sm mr-1"></span>
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </ng-template>
+</div>

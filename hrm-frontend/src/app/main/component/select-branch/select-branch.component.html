@@ -1,0 +1,287 @@
+<div>
+    <ng-select [items]="branches" bindLabel="branchName" bindValue="id" placeholder="Chọn chi nhánh"
+        [(ngModel)]="selectedBranch" [compareWith]="compareBranches" (change)="onBranchChange($event)" (blur)="onBlur()"
+        [disabled]="isDisabled">
+    </ng-select>
+
+
+</div>
+
+<ng-template #modalAddBranch let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title " id="myModalLabel1">
+            Thêm mới chi nhánh
+        </h4>
+        <button type="button" class="close" (click)="onCloseBranchModal(modal)" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body" tabindex="0" ngbAutofocus>
+        <div class="form-area">
+            <form [formGroup]="branchForm" (ngSubmit)="onSubmitBranchReactiveForm(modal)">
+                <!-- Tên chi nhánh -->
+                <div class="form-group">
+                    <label for="branchName">Tên chi nhánh <span class="text-danger">(*)</span></label>
+                    <input type="text" class="form-control" placeholder="Tên chi nhánh" formControlName="branchName"
+                        [ngClass]="{
+                'is-invalid':
+                  branchForm.controls['branchName'].touched &&
+                  branchForm.controls['branchName'].invalid,
+                'is-valid':
+                  branchForm.controls['branchName'].touched &&
+                  branchForm.controls['branchName'].valid
+              }" />
+                    <div class="invalid-feedback" *ngIf="
+                branchForm.controls['branchName'].touched &&
+                branchForm.controls['branchName'].invalid
+              ">
+                        <div *ngIf="branchForm.controls['branchName'].errors?.required">
+                            Tên chi nhánh là bắt buộc
+                        </div>
+                        <div *ngIf="
+                  branchForm.controls['branchName'].errors?.minlength ||
+                  branchForm.controls['branchName'].errors?.maxlength
+                ">
+                            Tên chi nhánh phải có ít nhất 2 ký tự và tối đa 255 ký tự
+                        </div>
+                        <div *ngIf="branchForm.controls['branchName'].errors?.duplicate">
+                            Tên chi nhánh đã tồn tại.
+                        </div>
+                        <div *ngIf="branchForm.controls['branchName'].errors?.apiError">
+                            <div *ngFor="
+                    let error of branchForm.controls['branchName'].errors?.apiError
+                  ">
+                                {{ error }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Địa chỉ -->
+
+                <!-- Tỉnh/Thành phố -->
+                <div class="form-row">
+                    <!-- Tỉnh/Thành phố -->
+                    <div class="form-group col-md-4">
+                        <label for="province">Tỉnh/Thành phố </label>
+                        <ng-select [items]="provinces" bindLabel="name" bindValue="code" formControlName="province"
+                            placeholder="Chọn Tỉnh/Thành phố" (change)="onProvinceChange($event)">
+                        </ng-select>
+                        <div *ngIf="
+                  branchForm.controls['province'].touched &&
+                  branchForm.controls['province'].invalid
+                " class="text-danger">
+                            <div *ngIf="branchForm.controls['province'].errors?.required">
+                                Tỉnh/Thành phố là bắt buộc
+                            </div>
+                            <div *ngIf="branchForm.controls['province'].errors?.apiError">
+                                <div *ngFor="
+                      let error of branchForm.controls['province'].errors?.apiError
+                    ">
+                                    {{ error }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quận/Huyện -->
+                    <div class="form-group col-md-4">
+                        <label for="district">Quận/Huyện </label>
+                        <ng-select [items]="districts" bindLabel="name" bindValue="code" formControlName="district"
+                            placeholder="Chọn Quận/Huyện" (change)="onDistrictChange($event)">
+                        </ng-select>
+                        <div *ngIf="
+                  branchForm.controls['district'].touched &&
+                  branchForm.controls['district'].invalid
+                " class="text-danger">
+                            <div *ngIf="branchForm.controls['district'].errors?.required">
+                                Quận/Huyện là bắt buộc
+                            </div>
+                            <div *ngIf="branchForm.controls['district'].errors?.apiError">
+                                <div *ngFor="
+                      let error of branchForm.controls['district'].errors?.apiError
+                    ">
+                                    {{ error }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Xã/Phường -->
+                    <div class="form-group col-md-4">
+                        <label for="ward">Xã/Phường </label>
+                        <ng-select [items]="wards" bindLabel="name" bindValue="code" formControlName="ward"
+                            placeholder="Chọn Xã/Phường" (change)="onWardChange($event)">
+                        </ng-select>
+                        <div *ngIf="
+                  branchForm.controls['ward'].touched && branchForm.controls['ward'].invalid
+                " class="text-danger">
+                            <div *ngIf="branchForm.controls['ward'].errors?.required">
+                                Xã/Phường là bắt buộc
+                            </div>
+                            <div *ngIf="branchForm.controls['ward'].errors?.apiError">
+                                <div *ngFor="let error of branchForm.controls['ward'].errors?.apiError">
+                                    {{ error }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Địa chỉ cụ thể -->
+                <div class="form-group">
+                    <label for="specificAddress">Địa chỉ cụ thể </label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fa fa-map-marker"></i>
+                            </span>
+                        </div>
+                        <input type="text" class="form-control" formControlName="specificAddress"
+                            placeholder="Nhập địa chỉ cụ thể" [ngClass]="{
+                  'is-invalid':
+                    branchForm.controls['specificAddress'].touched &&
+                    branchForm.controls['specificAddress'].invalid,
+                  'is-valid':
+                    branchForm.controls['specificAddress'].touched &&
+                    branchForm.controls['specificAddress'].valid
+                }" />
+                        <div class="invalid-feedback" *ngIf="
+                  branchForm.controls['specificAddress'].touched &&
+                  branchForm.controls['specificAddress'].invalid
+                ">
+                            <div *ngIf="branchForm.controls['specificAddress'].errors?.required">
+                                Địa chỉ cụ thể là bắt buộc
+                            </div>
+                            <div *ngIf="
+                    branchForm.controls['specificAddress'].errors?.minlength ||
+                    branchForm.controls['specificAddress'].errors?.maxlength
+                  ">
+                                Địa chỉ phải có ít nhất 3 ký tự và tối đa 255 ký tự
+                            </div>
+                            <div *ngIf="branchForm.controls['specificAddress'].errors?.apiError">
+                                <div *ngFor="
+                      let error of branchForm.controls['specificAddress'].errors
+                        ?.apiError
+                    ">
+                                    {{ error }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email">Email </label>
+                    <input type="email" class="form-control" placeholder="Email" formControlName="email" [ngClass]="{
+                'is-invalid':
+                  branchForm.controls['email'].touched &&
+                  branchForm.controls['email'].invalid,
+                'is-valid':
+                  branchForm.controls['email'].touched && branchForm.controls['email'].valid
+              }" />
+                    <div class="invalid-feedback" *ngIf="
+                branchForm.controls['email'].touched && branchForm.controls['email'].invalid
+              ">
+                        <div *ngIf="branchForm.controls['email'].errors?.required">
+                            Email là bắt buộc
+                        </div>
+                        <div *ngIf="branchForm.controls['email'].errors?.pattern">
+                            Email không hợp lệ
+                        </div>
+                        <div *ngIf="branchForm.controls['email'].errors?.duplicate">
+                            Email đã tồn tại.
+                        </div>
+                        <div *ngIf="branchForm.controls['email'].errors?.apiError">
+                            <div *ngFor="let error of branchForm.controls['email'].errors?.apiError">
+                                {{ error }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Số điện thoại -->
+                <div class="form-group">
+                    <label for="phoneNumber">Số điện thoại </label>
+                    <input type="text" class="form-control" placeholder="Số điện thoại" formControlName="phoneNumber"
+                        [ngClass]="{
+                'is-invalid':
+                  branchForm.controls['phoneNumber'].touched &&
+                  branchForm.controls['phoneNumber'].invalid,
+                'is-valid':
+                  branchForm.controls['phoneNumber'].touched &&
+                  branchForm.controls['phoneNumber'].valid
+              }" />
+                    <div class="invalid-feedback" *ngIf="
+                branchForm.controls['phoneNumber'].touched &&
+                branchForm.controls['phoneNumber'].invalid
+              ">
+                        <div *ngIf="branchForm.controls['phoneNumber'].errors?.required">
+                            Số điện thoại là bắt buộc
+                        </div>
+                        <div *ngIf="branchForm.controls['phoneNumber'].errors?.pattern">
+                            Số điện thoại không hợp lệ. Số điện thoại phải là 10 chữ số.
+                        </div>
+                        <div *ngIf="branchForm.controls['phoneNumber'].errors?.duplicate">
+                            Số điện thoại đã tồn tại.
+                        </div>
+                        <div *ngIf="branchForm.controls['phoneNumber'].errors?.apiError">
+                            <div *ngFor="
+                    let error of branchForm.controls['phoneNumber'].errors?.apiError
+                  ">
+                                {{ error }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mã số thuế -->
+                <div class="form-group">
+                    <label for="taxCode">Mã số thuế </label>
+                    <input type="text" class="form-control" placeholder="Mã số thuế" formControlName="taxCode"
+                        [ngClass]="{
+                'is-invalid':
+                  branchForm.controls['taxCode'].touched &&
+                  branchForm.controls['taxCode'].invalid,
+                'is-valid':
+                  branchForm.controls['taxCode'].touched &&
+                  branchForm.controls['taxCode'].valid
+              }" />
+                    <div class="invalid-feedback" *ngIf="
+                branchForm.controls['taxCode'].touched &&
+                branchForm.controls['taxCode'].invalid
+              ">
+                        <div *ngIf="branchForm.controls['taxCode'].errors?.required">
+                            Mã số thuế là bắt buộc
+                        </div>
+                        <div *ngIf="branchForm.controls['taxCode'].errors?.pattern">
+                            Mã số thuế không đúng định dạng. Mã số thuế phải là 10 hoặc 13
+                            số.
+                        </div>
+                        <div *ngIf="branchForm.controls['taxCode'].errors?.duplicate">
+                            Mã số thuế đã tồn tại.
+                        </div>
+                        <div *ngIf="branchForm.controls['taxCode'].errors?.apiError">
+                            <div *ngFor="
+                    let error of branchForm.controls['taxCode'].errors?.apiError
+                  ">
+                                {{ error }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="onCloseBranchModal(modal)">
+                        Đóng
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="branchForm.invalid || formBranchLoading">
+                        <span *ngIf="formBranchLoading" class="spinner-border spinner-border-sm mr-1"></span>
+                        Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</ng-template>

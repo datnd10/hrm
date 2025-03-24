@@ -1,0 +1,291 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <div>
+          <app-action [tableData]="contractsArray" [tableTitle]="tableTitle" [showActionButton]="true"
+            [showExportImportButton]="false" [anySelected]="anySelected.bind(this)" (onAdd)="addContract()"
+            [showChangeStatusButton]="false" (onSendSelected)="handleSendSelected()">
+          </app-action>
+        </div>
+        <div class="card-body">
+          <div class="users-list-filter">
+            <form>
+              <div class="row">
+                <div class="col-12 col-md-3">
+                  <fieldset class="form-group">
+                    <ng-select [items]="branchsArray" [(ngModel)]="searchByBranch" name="branchName"
+                      bindLabel="branchName" bindValue="id" placeholder=" Chọn chi nhánh"
+                      (change)="filterByBranch($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-3">
+                  <fieldset class="form-group">
+                    <ng-select [items]="departmentsArray" [(ngModel)]="searchByDepartment" name="department"
+                      bindLabel="departmentName" bindValue="id" placeholder=" Chọn phòng ban" [disabled]="
+                        !departmentsArray || departmentsArray.length === 0
+                      " (change)="filterByDepartment($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-2">
+                  <fieldset class="form-group">
+                    <ng-select [items]="positionsArray" [(ngModel)]="searchByPosition" name="position"
+                      bindLabel="positionName" bindValue="id" placeholder=" Chọn vị trí" [disabled]="
+                        !positionsArray || positionsArray.length === 0
+                      " (change)="filterByPosition($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-2">
+                  <fieldset class="form-group">
+                    <ng-select [items]="statusFilter" [(ngModel)]="searchByStatus" name="role" bindLabel="name"
+                      bindValue="value" placeholder=" Chọn trạng thái" (change)="filterByStatus($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-2">
+                  <fieldset class="form-group">
+                    <input type="text" [(ngModel)]="searchByFullName" #searchInput name="search" placeholder="Tìm kiếm"
+                      class="form-control" (keyup.enter)="onSearch(searchInput.value)" />
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div>
+          <div *ngIf="loading" class="text-center my-5">
+            <!-- Bạn có thể thêm một spinner ở đây nếu muốn -->
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div>Đang tải dữ liệu...</div>
+          </div>
+
+          <app-table *ngIf="!loading" [showActionButton]="true" [tableTitle]="tableTitle" [tableData]="contractsArray"
+            [columnArray]="columnArray" [totalItems]="totalItems" [itemsPerPage]="itemsPerPage"
+            [currentPage]="currentPage" [totalPages]="totalPage" (onPageChange)="onPageChange($event)"
+            (onItemsPerPageChange)="onItemsPerPageChange($event)" (onEdit)="editContract($event)"
+            (onDelete)="deleteContract($event)" (onSelectedItemsChange)="handleSelectedItemsChange($event)"
+            (onView)="viewContract($event)" (onSortChange)="onSortChange($event)"></app-table>
+        </div>
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+
+  <ng-template #modalAddEdit let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title" id="myModalLabel1">
+        <ng-container *ngIf="modalMode === 'add'">Thêm mới hợp đồng</ng-container>
+        <ng-container *ngIf="modalMode === 'edit'">Chỉnh sửa hợp đồng</ng-container>
+      </h4>
+      <button type="button" class="close" (click)="onCloseModal(modal)" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+      <div class="form-area" *ngIf="!modalLoading">
+        <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+          <div class="form-row">
+            <!-- Chi nhánh -->
+            <div class="form-group col-md-4">
+              <label for="">Chi nhánh <span class="text-danger">(*)</span></label>
+              <app-select-branch [selectedBranch]="selectedBranch" (branchChanged)="onBranchChanged($event)"
+                (branchAdded)="onBranchAdded($event)" (branchBlurred)="onBranchBlurred()"
+                [ngClass]="{'is-invalid': form.get('branchId')?.touched && form.get('branchId')?.invalid}"></app-select-branch>
+              <div *ngIf="form.get('branchId')?.touched && form.get('branchId')?.invalid" class="invalid-feedback">
+                Chi nhánh là bắt buộc
+              </div>
+            </div>
+            <!-- Phòng ban -->
+            <div class="form-group col-md-4">
+              <label for="district">Phòng ban <span class="text-danger">(*)</span></label>
+              <app-select-department [selectedBranch]="selectedBranch" [selectedDepartment]="selectedDepartment"
+                (departmentChanged)="onDepartmentChanged($event)" (departmentAdded)="onDepartmentAdded($event)"
+                (departmentBlurred)="onDepartmentBlurred()" [isDisabled]="isDepartmentDisabled"
+                [ngClass]="{'is-invalid': form.get('departmentId')?.touched && form.get('departmentId')?.invalid}"></app-select-department>
+              <div *ngIf="
+                form.get('departmentId').touched &&
+                form.get('departmentId').invalid
+              " class="invalid-feedback">
+                Phòng ban là bắt buộc
+              </div>
+            </div>
+            <!-- Nhân viên -->
+            <div class="form-group col-md-4">
+              <label for="employeeId">Nhân viên <span class="text-danger">(*)</span></label>
+              <app-select-employee [selectedDepartment]="selectedDepartment" [selectedEmployee]="selectedEmployee"
+                (employeeChanged)="onEmployeeChanged($event)" (employeeAdded)="onEmployeeAdded($event)"
+                (employeeBlurred)="onEmployeeBlurred()" [isDisabled]="isEmployeeDisabled"
+                [ngClass]="{'is-invalid': form.get('employeeId')?.touched && form.get('employeeId')?.invalid}"></app-select-employee>
+              <div *ngIf="
+                form.get('employeeId').touched &&
+                form.get('employeeId').invalid
+              " class="invalid-feedback">
+                Nhân viên là bắt buộc
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <!-- Tên hợp đồng -->
+            <div class="form-group col-md-6">
+              <label for="contractName">Tên hợp đồng <span class="text-danger">(*)</span></label>
+              <input type="text" class="form-control" placeholder="Tên hợp đồng" formControlName="contractName" />
+              <div *ngIf="
+                  form.controls['contractName'].touched &&
+                  form.controls['contractName'].invalid
+                " class="invalid-feedback">
+                <div *ngIf="form.controls['contractName'].errors?.required">
+                  Tên hợp đồng là bắt buộc
+                </div>
+              </div>
+            </div>
+            <!-- Lương -->
+            <div class="form-group col-md-6">
+              <label for="salary">Lương <span class="text-danger">(*)</span></label>
+              <input type="text" class="form-control" placeholder="Lương" formControlName="salary" appCurrencyFormat />
+              <div *ngIf="
+                  form.controls['salary'].touched &&
+                  form.controls['salary'].invalid
+                " class="invalid-feedback">
+                <div *ngIf="form.controls['salary'].errors?.required">
+                  Lương là bắt buộc
+                </div>
+                <div *ngIf="form.controls['salary'].errors?.apiError">
+                  <div *ngFor="
+                      let error of form.controls['salary'].errors?.apiError
+                    ">
+                    {{ error }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <!-- Ngày bắt đầu -->
+            <div class="form-group col-md-6">
+              <label for="startDate">Ngày bắt đầu <span class="text-danger">(*)</span></label>
+              <input type="date" class="form-control" formControlName="startDate" />
+              <div *ngIf="
+                  form.controls['startDate'].touched &&
+                  form.controls['startDate'].invalid
+                " class="invalid-feedback">
+                <div *ngIf="form.controls['startDate'].errors?.required">
+                  Ngày bắt đầu là bắt buộc
+                </div>
+              </div>
+            </div>
+            <!-- Ngày kết thúc -->
+            <div class="form-group col-md-6">
+              <label for="endDate">Ngày kết thúc</label>
+              <input type="date" class="form-control" formControlName="endDate" />
+              <div *ngIf="
+                  form.controls['endDate'].touched &&
+                  form.controls['endDate'].invalid
+                " class="invalid-feedback">
+                <div *ngIf="
+                    form.controls['endDate'].errors?.endDateBeforeStartDate
+                  ">
+                  Ngày kết thúc phải lớn hơn ngày bắt đầu
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Mô tả -->
+          <div class="form-group">
+            <label for="description">Mô tả</label>
+            <textarea id="description" class="form-control" placeholder="Nhập mô tả"
+              formControlName="description"></textarea>
+            <div *ngIf="
+                form.controls['description'].touched &&
+                form.controls['description'].invalid
+              " class="invalid-feedback">
+              <div *ngIf="form.controls['description'].errors?.maxlength">
+                Mô tả không được quá 300 ký tự
+              </div>
+            </div>
+          </div>
+          <div *ngIf="modalMode !== 'add'" class="form-group">
+            <label for="description">Trạng thái</label>
+            <div class="toggle-switch" (click)="modalMode !== 'view' && onToggle()"
+              [ngClass]="{'active': form.get('status')?.value === 'ACTIVE', 'disabled': modalMode === 'view'}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+              Đóng
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid || formLoading">
+              <span *ngIf="formLoading" class="spinner-border spinner-border-sm mr-1"></span>
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modalView let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title">Xem chi tiết hợp đồng</h4>
+      <button type="button" class="close" (click)="modal.dismiss()" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+      <div *ngIf="!modalLoading">
+        <table class="table table-bordered table-striped">
+          <ng-container *ngFor="let field of contractFields">
+            <tr>
+              <td><strong>{{ field.label }}</strong></td>
+              <td>{{ field.value || "Chưa có dữ liệu" }}</td>
+            </tr>
+          </ng-container>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modalDelete let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title">Xác nhận xóa</h5>
+      <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="selectedEmployee">
+        Bạn có chắc chắn muốn xóa hợp đồng
+        <strong>{{ selectedEmployee?.fullName }}</strong> không?
+      </p>
+      <p *ngIf="!selectedEmployee">
+        Bạn có chắc chắn muốn xóa các hợp đồng đã chọn không?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+        Đóng
+      </button>
+      <button type="button" class="btn btn-danger" (click)="deleteselectedContracts(modal)" [disabled]="deleteLoading">
+        <span *ngIf="deleteLoading" class="spinner-border spinner-border-sm mr-1"></span>
+        Xóa
+      </button>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,240 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <div *ngIf="loading" class="text-center my-5">
+          <!-- Bạn có thể thêm một spinner ở đây nếu muốn -->
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div>Đang tải dữ liệu...</div>
+        </div>
+
+        <app-table
+          *ngIf="!loading"
+          [showExportImportButton]="false"
+          [showChangeStatusButton]="false"
+          [showActionButton]="true"
+          [tableTitle]="tableTitle"
+          [tableData]="branchsArray"
+          [columnArray]="columnArray"
+          [totalItems]="totalItems"
+          [itemsPerPage]="itemsPerPage"
+          [currentPage]="currentPage"
+          [totalPages]="totalPage"
+          (onPageChange)="onPageChange($event)"
+          (onItemsPerPageChange)="onItemsPerPageChange($event)"
+          (onEdit)="editBranch($event)"
+          (onDelete)="deleteBranch($event)"
+          (onSendSelected)="handleSendSelected($event)"
+          (onAdd)="addBranch()"
+          (onView)="viewBranch($event)"
+          (onSortChange)="onSortChange($event)"
+        ></app-table>
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+
+  <ng-template #modalBasic let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title">
+        <ng-container *ngIf="modalMode === 'add'"
+          >Thêm mới loại tài khoản</ng-container
+        >
+        <ng-container *ngIf="modalMode === 'edit'"
+          >Chỉnh sửa loại tài khoản</ng-container
+        >
+        <ng-container *ngIf="modalMode === 'view'"
+          >Xem chi tiết loại tài khoản</ng-container
+        >
+      </h4>
+      <button
+        type="button"
+        class="close"
+        (click)="onCloseModal(modal)"
+        aria-label="Close"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body" tabindex="0" ngbAutofocus>
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+
+      <div class="form-area" *ngIf="!modalLoading">
+        <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+          <!-- Account Type Name -->
+          <div class="form-group">
+            <label for="accountTypeName"
+              >Tên loại tài khoản <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              id="accountTypeName"
+              class="form-control"
+              formControlName="accountTypeName"
+              placeholder="Quản lý tòa nhà"
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="description">Mô tả</label>
+            <textarea
+              id="description"
+              class="form-control"
+              formControlName="description"
+              placeholder="Mô tả"
+            ></textarea>
+          </div>
+
+          <!-- Select All Checkbox -->
+          <div class="form-check">
+            <input
+              type="checkbox"
+              id="selectAll"
+              class="form-check-input"
+              (change)="selectAllPermissions($event)"
+            />
+            <label class="form-check-label" for="selectAll">Tất cả</label>
+          </div>
+          <!-- Permissions Table -->
+          <div class="form-group">
+            <label>Nhóm quyền</label>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Nhóm quyền</th>
+                    <th>Xem</th>
+                    <th>Thêm</th>
+                    <th>Sửa</th>
+                    <th>Xóa</th>
+                    <th>Quyền khác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let permission of permissions">
+                    <td>{{ permission.groupName }}</td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        formControlName="{{ permission.viewControlName }}"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        formControlName="{{ permission.addControlName }}"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        formControlName="{{ permission.editControlName }}"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        formControlName="{{ permission.deleteControlName }}"
+                      />
+                    </td>
+                    <td>
+                      <ng-container *ngIf="permission.customPermissions">
+                        <div
+                          *ngFor="let custom of permission.customPermissions"
+                        >
+                          <input
+                            type="checkbox"
+                            formControlName="{{ custom.controlName }}"
+                          />
+                          {{ custom.label }}
+                        </div>
+                      </ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer pt-1">
+            <!-- Close Button in View Mode -->
+            <button
+              *ngIf="modalMode === 'view'"
+              type="button"
+              class="btn btn-secondary"
+              (click)="modal.close()"
+            >
+              Đóng
+            </button>
+
+            <!-- Save Button in Add/Edit Mode -->
+            <button
+              *ngIf="modalMode !== 'view'"
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="form.invalid || formLoading"
+            >
+              <span
+                *ngIf="formLoading"
+                class="spinner-border spinner-border-sm mr-1"
+              ></span>
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modalDelete let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title">Xác nhận xóa</h5>
+      <button
+        type="button"
+        class="close"
+        aria-label="Close"
+        (click)="modal.dismiss('Cross click')"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="selectedBranch">
+        Bạn có chắc chắn muốn xóa chi nhánh
+        <strong>{{ selectedBranch?.branchName }}</strong> không?
+      </p>
+      <p *ngIf="!selectedBranch">
+        Bạn có chắc chắn muốn xóa các chi nhánh đã chọn không?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="modal.dismiss('cancel')"
+      >
+        Hủy
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="deleteSelectedBranches(modal)"
+        [disabled]="deleteLoading"
+      >
+        <span
+          *ngIf="deleteLoading"
+          class="spinner-border spinner-border-sm mr-1"
+        ></span>
+        Xóa
+      </button>
+    </div>
+  </ng-template>
+</div>

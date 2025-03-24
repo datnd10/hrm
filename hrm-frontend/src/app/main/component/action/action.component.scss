@@ -1,0 +1,13 @@
+.icon-small {
+  width: 16px; /* Kích thước chiều ngang */
+  height: 16px; /* Kích thước chiều cao */
+  font-size: 16px; /* Phù hợp với font size */
+}
+.btn-square {
+  width: 45px; /* Chiều rộng và chiều cao bằng nhau để tạo hình vuông */
+  height: 45px;
+  padding: 0; /* Loại bỏ khoảng padding mặc định */
+  display: flex; /* Căn giữa nội dung */
+  align-items: center;
+  justify-content: center;
+}

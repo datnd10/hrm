@@ -1,0 +1,33 @@
+<div class="form-group">
+    <div class="input-group">
+        <div class="input-container">
+            <input type="text" class="form-control" placeholder="Chọn tháng"
+                [value]="selectedMonthYear ? (selectedMonthYear | date: 'MM-yyyy') : ''" (click)="openMonthPicker()"
+                [disabled]="disabled" />
+            <i class="fa fa-times clear-icon" *ngIf="selectedMonthYear && !disabled" (click)="clearMonthPicker()"></i>
+        </div>
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" (click)="openMonthPicker()" type="button">
+                <i class="fa fa-calendar"></i>
+            </button>
+        </div>
+    </div>
+    <div *ngIf="isMonthPickerOpen  && !disabled" class="month-picker-overlay">
+        <div class="month-picker">
+            <div class="year-selector">
+                <button class="year-nav-btn" (click)="changeYear(-1)" title="Năm trước">
+                    &#8249;
+                </button>
+                <span>{{ currentYear }}</span>
+                <button class="year-nav-btn" (click)="changeYear(1)" title="Năm sau">
+                    &#8250;
+                </button>
+            </div>
+            <div class="month-selector">
+                <button *ngFor="let month of months" (click)="selectMonth(month)">
+                    {{ month }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

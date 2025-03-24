@@ -1,0 +1,10 @@
+@import "@core/scss/angular/libs/datatables.component.scss";
+@import "@core/scss/base/pages/app-user.scss";
+@import "@core/scss/angular/libs/select.component.scss";
+@import "~ngx-toastr/toastr.css";
+
+.invalid-feedback {
+  color: #e74c3c; /* Red color for error text */
+  margin-top: 5px;
+  font-size: 14px;
+}

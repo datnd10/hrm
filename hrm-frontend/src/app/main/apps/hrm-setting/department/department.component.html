@@ -1,0 +1,214 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <div class="row">
+          <div class="col-md-6 col-12">
+            <h5 class="card-header">Quản lý phòng ban</h5>
+          </div>
+          <div class="col-md-6 col-12 d-flex justify-content-start justify-content-md-end">
+            <div class="d-flex align-items-center justify-content-end pr-1 pb-1 pb-md-0">
+              <button class="btn btn-primary ml-1" rippleEffect (click)="openAddModal(modalBasic)">
+                <i data-feather="plus" class="d-inline-block"></i>
+                <!-- Icon dấu cộng -->
+              </button>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="loading" class="text-center my-3">
+          <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+          liệu...
+        </div>
+        <p-treeTable *ngIf="!loading" [value]="departments" [columns]="cols">
+          <ng-template *ngIf="departments.length > 0" pTemplate="header" let-columns>
+            <tr>
+              <th>Thao Tác</th>
+              <th *ngFor="let col of columns" class="textHeader">
+                {{ col.header }}
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template *ngIf="departments.length > 0; else noData" pTemplate="body" let-rowNode let-rowData="rowData"
+            let-columns="columns">
+            <tr>
+              <td>
+                <!-- Action buttons for details, edit, and delete -->
+                <button type="button" (click)="openModalViewOrEdit(modalView, rowData, 'view')"
+                  class="btn btn-sm btn-icon btn-blue" title="Xem chi tiết">
+                  <span [data-feather]="'file-text'"></span>
+                </button>
+                <button type="button" (click)="openModalViewOrEdit(modalBasic, rowData, 'edit')"
+                  class="btn btn-sm btn-icon btn-purple" title="Chỉnh sửa">
+                  <span [data-feather]="'edit'"></span>
+                </button>
+
+                <button type="button" (click)="openDeleteModal(modalDelete, rowData)"
+                  class="btn btn-sm btn-icon btn-red" title="Xóa">
+                  <span [data-feather]="'trash'"></span>
+                </button>
+              </td>
+              <td *ngFor="let col of columns; let i = index">
+                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i == 0"></p-treeTableToggler>
+                {{ rowData[col.field] }}
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template #noData>
+            <tr>
+              <td colspan="100%" class="text-center">Không có dữ liệu</td>
+            </tr>
+          </ng-template>
+        </p-treeTable>
+        <!-- End of p-treeTable -->
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+</div>
+
+<!-- New modal -->
+<ng-template #modalBasic let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="myModalLabel1">
+      <ng-container *ngIf="modalMode === 'add'">Thêm mới phòng ban</ng-container>
+      <ng-container *ngIf="modalMode === 'edit'">Chỉnh sửa phòng ban</ng-container>
+      <ng-container *ngIf="modalMode === 'view'">Xem chi tiết phòng ban</ng-container>
+    </h4>
+    <button type="button" class="close" (click)="onDepartmentCloseModal(modal)" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body" tabindex="0" ngbAutofocus>
+    <div *ngIf="modalLoading" class="text-center my-3">
+      <span class="spinner-border spinner-border-lg"></span> Đang tải dữ liệu...
+    </div>
+    <div class="form-area" *ngIf="!modalLoading">
+      <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+        <div class="form-group">
+          <label for="branch">Tên chi nhánh: <span class="text-danger">(*)</span></label>
+          <app-select-branch [selectedBranch]="selectedBranch" (branchChanged)="onBranchChange($event)"
+            (branchAdded)="onBranchAdded($event)" (branchBlurred)="onBranchBlur()"
+            [ngClass]="{'is-invalid': form.get('branchId')?.touched && form.get('branchId')?.invalid}"></app-select-branch>
+          <div *ngIf="form.get('branchId')?.touched && form.get('branchId')?.invalid" class="invalid-feedback">
+            Chi nhánh là bắt buộc
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="parentDepartment">Phòng ban gốc: </label>
+          <ng-select [items]="filteredDepartments" bindLabel="departmentName" bindValue="id"
+            formControlName="parentDepartmentId" placeholder="Chọn phòng ban gốc" [ngClass]="{
+              'is-invalid':
+                ParentDepartmentId.touched && ParentDepartmentId.invalid,
+              'is-valid': ParentDepartmentId.valid && ParentDepartmentId.touched
+            }">
+          </ng-select>
+          <div class="invalid-feedback" *ngIf="ParentDepartmentId.touched && ParentDepartmentId.invalid">
+            <div *ngIf="ParentDepartmentId.errors?.['required']">
+              Phòng ban gốc là bắt buộc
+            </div>
+            <div *ngIf="ParentDepartmentId.errors?.['pattern']">
+              Phòng ban gốc không hợp lệ
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="departmentName">Tên phòng ban <span class="text-danger">(*)</span></label>
+          <input type="text" id="departmentName" placeholder="Tên phòng ban" class="form-control" name="departmentName"
+            formControlName="departmentName" [ngClass]="{
+              'is-invalid': DepartmentName?.touched && DepartmentName?.invalid,
+              'is-valid': DepartmentName?.valid && DepartmentName?.touched
+            }" />
+          <div *ngIf="DepartmentName?.touched && DepartmentName?.invalid" class="invalid-feedback">
+            <div *ngIf="DepartmentName.errors?.['required']">
+              Tên phòng ban là bắt buộc
+            </div>
+            <div *ngIf="DepartmentName.errors?.['minlength']">
+              Tên phòng ban phải có ít nhất 5 ký tự
+            </div>
+            <div *ngIf="DepartmentName.errors?.['maxlength']">
+              Tên phòng ban không được vượt quá 255 ký tự
+            </div>
+            <div *ngIf="DepartmentName.errors?.['pattern']">
+              Tên phòng ban không được là số
+            </div>
+            <div *ngIf="form.controls['departmentName'].errors?.apiError">
+              {{ form.controls["departmentName"].errors.apiError }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="onDepartmentCloseModal(modal)">
+            Đóng
+          </button>
+          <button *ngIf="modalMode !== 'view'" type="submit" class="btn btn-primary"
+            [disabled]="form.invalid || formLoading">
+            <span *ngIf="formLoading" class="spinner-border spinner-border-sm mr-1"></span>
+            Lưu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #modalView let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">Xem chi tiết phòng ban</h4>
+    <button type="button" class="close" (click)="modal.dismiss()" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="modalLoading" class="text-center my-3">
+      <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+      liệu...
+    </div>
+    <div *ngIf="!modalLoading">
+      <table class="table table-bordered table-striped">
+        <tbody>
+          <ng-container *ngFor="let field of departmentFields">
+            <tr>
+              <td><strong>{{ field.label }}</strong></td>
+              <td>{{ field.value || "Chưa có dữ liệu" }}</td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        Đóng
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #modalDelete let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Xác nhận xóa</h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p>
+      Bạn có chắc chắn muốn xóa phòng ban
+      <strong>{{ selectedDepartment?.departmentName }}</strong> không?
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+      Đóng
+    </button>
+    <button type="button" class="btn btn-danger" (click)="deleteDepartment(modal)" [disabled]="deleteLoading">
+      <span *ngIf="deleteLoading" class="spinner-border spinner-border-sm mr-1"></span>
+      Xóa
+    </button>
+  </div>
+</ng-template>

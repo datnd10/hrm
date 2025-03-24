@@ -1,0 +1,91 @@
+<div>
+    <ng-select [items]="departments" bindLabel="departmentName" bindValue="id" placeholder="Chọn phòng ban"
+        (change)="onDepartmentChange($event)" [compareWith]="compareDepartments" [(ngModel)]="selectedDepartment"
+        (blur)="onBlur()" [disabled]="isDisabled">
+    </ng-select>
+
+    <ng-template #modalAddDepartment let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="myModalLabel1">
+                Thêm mới phòng ban
+            </h4>
+            <button type="button" class="close" (click)="onCloseDepartmentModal(modal)" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body" tabindex="0" ngbAutofocus>
+            <div class="form-area">
+                <form [formGroup]="departmentForm" (ngSubmit)="onSubmitDepartmentReactiveForm(modal)">
+                    <div class="form-group">
+                        <label for="branch">Tên chi nhánh: <span class="text-danger">(*)</span></label>
+                        <app-select-branch (branchChanged)="onBranchChange($event)"
+                            (branchAdded)="onBranchAdded($event)" (branchBlurred)="onBranchBlur()"
+                            [ngClass]="{'is-invalid': departmentForm.get('branchId')?.touched && departmentForm.get('branchId')?.invalid}"></app-select-branch>
+                        <div *ngIf="departmentForm.get('branchId')?.touched && departmentForm.get('branchId')?.invalid"
+                            class="invalid-feedback">
+                            Chi nhánh là bắt buộc
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parentDepartment">Phòng ban gốc: </label>
+                        <ng-select [items]="filteredDepartments" bindLabel="departmentName" bindValue="id"
+                            formControlName="parentDepartmentId" placeholder="Chọn phòng ban gốc" [ngClass]="{
+                    'is-invalid':
+                      departmentForm.controls['parentDepartmentId'].touched && departmentForm.controls['parentDepartmentId'].invalid,
+                    'is-valid': departmentForm.controls['parentDepartmentId'].valid && departmentForm.controls['parentDepartmentId'].touched
+                  }">
+                        </ng-select>
+                        <div class="invalid-feedback"
+                            *ngIf="departmentForm.controls['parentDepartmentId'].touched && departmentForm.controls['parentDepartmentId'].invalid">
+                            <div *ngIf="departmentForm.controls['parentDepartmentId'].errors?.['required']">
+                                Phòng ban gốc là bắt buộc
+                            </div>
+                            <div *ngIf="departmentForm.controls['parentDepartmentId'].errors?.['pattern']">
+                                Phòng ban gốc không hợp lệ
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="departmentName">Tên phòng ban <span class="text-danger">(*)</span></label>
+                        <input type="text" id="departmentName" placeholder="Tên phòng ban" class="form-control"
+                            name="departmentName" formControlName="departmentName" [ngClass]="{
+                    'is-invalid': departmentForm.controls['departmentName']?.touched && departmentForm.controls['departmentName']?.invalid,
+                    'is-valid': departmentForm.controls['departmentName']?.valid && departmentForm.controls['departmentName']?.touched
+                  }" />
+                        <div *ngIf="departmentForm.controls['departmentName']?.touched && departmentForm.controls['departmentName']?.invalid"
+                            class="invalid-feedback">
+                            <div *ngIf="departmentForm.controls['departmentName'].errors?.['required']">
+                                Tên phòng ban là bắt buộc
+                            </div>
+                            <div *ngIf="departmentForm.controls['departmentName'].errors?.['minlength']">
+                                Tên phòng ban phải có ít nhất 5 ký tự
+                            </div>
+                            <div *ngIf="departmentForm.controls['departmentName'].errors?.['maxlength']">
+                                Tên phòng ban không được vượt quá 255 ký tự
+                            </div>
+                            <div *ngIf="departmentForm.controls['departmentName'].errors?.['pattern']">
+                                Tên phòng ban không được là số
+                            </div>
+                            <div *ngIf="departmentForm.controls['departmentName'].errors?.apiError">
+                                {{ departmentForm.controls["departmentName"].errors.apiError }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" (click)="onCloseDepartmentModal(modal)">
+                            Đóng
+                        </button>
+                        <button type="submit" class="btn btn-primary"
+                            [disabled]="departmentForm.invalid || formDepartmentLoading">
+                            <span *ngIf="formDepartmentLoading" class="spinner-border spinner-border-sm mr-1"></span>
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </ng-template>
+</div>

@@ -1,0 +1,25 @@
+ #----------------------------------------------------------------------------------------------------------------------------------------
+01-build-hrm-frontend-test:
+ stage: hrm-frontend-build-test
+ needs: []
+ when: manual
+ only:
+  - qa
+ tags:
+  - build-tingee
+ script:
+  - docker rmi harbor.heno.vn/hrm/frontend -f
+  - docker build -t harbor.heno.vn/hrm/frontend .
+  - docker push harbor.heno.vn/hrm/frontend
+02-kubernetes-hrm-frontend-test:
+ stage: hrm-frontend-deploy-test
+ needs: ["01-build-hrm-frontend-test"]
+ tags:
+  - tingee-uat-32
+ only:
+  - qa
+ script:
+  - kubectl apply -f ./k8s/qa/hrm-frontend-deployment.yaml
+  - kubectl delete -f ./k8s/qa/hrm-frontend-deployment.yaml
+  - kubectl apply -f ./k8s/qa/hrm-frontend-deployment.yaml
+ #----------------------------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,332 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <div>
+          <!-- <span>Danh sách jobs</span> -->
+          <!-- Action Component -->
+          <app-action [tableData]="expenseTypesArray" [tableTitle]="tableTitle" [showActionButton]="true"
+            [showExportImportButton]="false" [showChangeStatusButton]="false" [anySelected]="anySelected.bind(this)"
+            (onAdd)="addExpenseType()" (onSendSelected)="handleSendSelected()">
+          </app-action>
+        </div>
+        <div class="card-body">
+          <div class="users-list-filter">
+            <form>
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <ng-select [items]="categoryOptions" [(ngModel)]="searchByCategory" name="status" bindLabel="name"
+                      bindValue="value" placeholder=" Chọn trạng thái" (change)="filterByCategory($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <input type="text" [(ngModel)]="searchByName" #searchInput name="search" placeholder="Tìm kiếm"
+                      class="form-control" (keyup.enter)="onSearch(searchInput.value)" />
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div>
+          <div *ngIf="loading" class="text-center my-5">
+            <!-- Bạn có thể thêm một spinner ở đây nếu muốn -->
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div>Đang tải dữ liệu...</div>
+          </div>
+
+          <app-table *ngIf="!loading" [showActionButton]="true" [tableData]="expenseTypesArray"
+            [columnArray]="columnArray" [totalItems]="totalItems" [itemsPerPage]="itemsPerPage"
+            [currentPage]="currentPage" [totalPages]="totalPage" (onPageChange)="onPageChange($event)"
+            (onItemsPerPageChange)="onItemsPerPageChange($event)" (onEdit)="editExpenseType($event)"
+            (onDelete)="deleteExpenseType($event)" (onSelectedItemsChange)="handleSelectedItemsChange($event)"
+            (onView)="viewExpenseType($event)" (onSortChange)="onSortChange($event)"></app-table>
+        </div>
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+
+  <!-- New expense type -->
+
+  <ng-template #modalAddEdit let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title ">
+        <ng-container *ngIf="modalMode === 'add'">Thêm mới loại chi phí</ng-container>
+        <ng-container *ngIf="modalMode === 'edit'">Chỉnh sửa loại chi phí</ng-container>
+      </h4>
+      <button type="button" class="close" (click)="modal.dismiss('Cross click')" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body" tabindex="0" ngbAutofocus>
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+      <div class="form-area" *ngIf="!modalLoading">
+        <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+          <!-- Tên loại chi phí -->
+          <div class="form-group">
+            <label for="name">Tên loại chi phí <span class="text-danger">(*)</span></label>
+            <input type="text" id="name" class="form-control" placeholder="Nhập tên loại chi phí" formControlName="name"
+              [ngClass]="{
+                'is-invalid':
+                  form.controls['name'].touched &&
+                  form.controls['name'].invalid,
+                'is-valid':
+                  form.controls['name'].touched && form.controls['name'].valid
+              }" />
+            <div class="text-danger" *ngIf="
+                form.controls['name'].touched && form.controls['name'].invalid
+              ">
+              <div *ngIf="form.controls['name'].errors?.required">
+                Tên loại chi phí là bắt buộc.
+              </div>
+              <div *ngIf="form.controls['name'].errors?.minlength">
+                Tên loại chi phí phải có ít nhất 2 ký tự.
+              </div>
+              <div *ngIf="form.controls['name'].errors?.maxlength">
+                Tên loại chi phí không được quá 255 ký tự.
+              </div>
+            </div>
+          </div>
+
+          <!-- Loại chi phí -->
+          <div class="form-group">
+            <label for="type">Loại chi phí <span class="text-danger">(*)</span></label>
+            <ng-select [items]="categoryOptions" bindLabel="name" bindValue="value" formControlName="type"
+              placeholder="Chọn loại chi phí" [ngClass]="{
+                'is-invalid':
+                  form.controls['type'].touched &&
+                  form.controls['type'].invalid,
+                'is-valid':
+                  form.controls['type'].valid && form.controls['type'].touched
+              }"></ng-select>
+            <div class="text-danger" *ngIf="
+                form.controls['type'].touched && form.controls['type'].invalid
+              ">
+              <div *ngIf="form.controls['type'].errors?.required">
+                Loại chi phí là bắt buộc.
+              </div>
+            </div>
+          </div>
+
+          <!-- Mô tả -->
+          <div class="form-group">
+            <label for="description">Mô tả</label>
+            <textarea id="description" class="form-control" placeholder="Nhập mô tả" formControlName="description"
+              [ngClass]="{
+                'is-invalid':
+                  form.controls['description'].touched &&
+                  form.controls['description'].invalid,
+                'is-valid':
+                  form.controls['description'].touched &&
+                  form.controls['description'].valid
+              }"></textarea>
+            <div class="text-danger" *ngIf="
+                form.controls['description'].touched &&
+                form.controls['description'].invalid
+              ">
+              <div *ngIf="form.controls['description'].errors?.maxlength">
+                Mô tả không được quá 255 ký tự.
+              </div>
+            </div>
+          </div>
+
+          <!-- Công thức tính -->
+          <div class="form-group row">
+            <!-- Công thức tính (dynamic behavior) -->
+            <div [class.col-md-12]="
+                form.controls['formulaType'].value !== 'FIXED_COST'
+              " [class.col-md-6]="
+                form.controls['formulaType'].value === 'FIXED_COST'
+              ">
+              <label for="formulaType">Công thức tính <span class="text-danger">(*)</span></label>
+              <ng-select [items]="formulaTypeOptions" bindLabel="name" bindValue="value" formControlName="formulaType"
+                placeholder="Chọn loại chi phí" (change)="onFormulaTypeChange($event)" [ngClass]="{
+                  'is-invalid':
+                    form.controls['formulaType'].touched &&
+                    form.controls['formulaType'].invalid,
+                  'is-valid':
+                    form.controls['formulaType'].touched &&
+                    form.controls['formulaType'].valid
+                }"></ng-select>
+              <div class="text-danger" *ngIf="
+                  form.controls['formulaType'].touched &&
+                  form.controls['formulaType'].invalid
+                ">
+                <div *ngIf="form.controls['formulaType'].errors?.required">
+                  Công thức tính là bắt buộc.
+                </div>
+              </div>
+            </div>
+
+            <!-- Đơn giá -->
+            <div class="col-md-6" *ngIf="form.controls['formulaType'].value === 'FIXED_COST'">
+              <label for="basePrice">Đơn giá</label>
+              <input type="text" id="basePrice" class="form-control" appCurrencyFormat placeholder="Nhập đơn giá"
+                formControlName="basePrice" [ngClass]="{
+                  'is-invalid':
+                    form.controls['basePrice'].touched &&
+                    form.controls['basePrice'].invalid,
+                  'is-valid':
+                    form.controls['basePrice'].touched &&
+                    form.controls['basePrice'].valid
+                }" (input)="validateNumberInput($event)" />
+              <div class="text-danger" *ngIf="
+                  form.controls['basePrice'].touched &&
+                  form.controls['basePrice'].invalid
+                ">
+                <div *ngIf="form.controls['basePrice'].errors?.required">
+                  Đơn giá là bắt buộc.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bảng định mức -->
+          <div class="form-group col-md-12" *ngIf="form.controls['formulaType'].value === 'TIERED_COST'">
+            <table class="table mt-3 table-bordered">
+              <thead>
+                <tr>
+                  <th class="text-start">Từ khoảng</th>
+                  <th class="text-start">Đến khoảng</th>
+                  <th class="text-start">Giá</th>
+                  <th class="text-start"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let range of expenseRanges.controls; let i = index" [formGroup]="range">
+                  <td>
+                    <input type="number" formControlName="minRange" class="form-control" placeholder="Từ khoảng"
+                      [value]="expenseRanges.controls[i].get('minRange').value" />
+                  </td>
+                  <td>
+                    <input type="number" formControlName="maxRange" class="form-control" placeholder="Đến khoảng"
+                      [value]="expenseRanges.controls[i].get('maxRange').value" />
+                  </td>
+                  <td>
+                    <input type="text" formControlName="price" class="form-control" appCurrencyFormat
+                      placeholder="Nhập giá" />
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-danger btn-sm" (click)="removeExpenseRange(i)">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" class="btn btn-primary mt-2" (click)="addExpenseRanges()">
+              Thêm dòng
+            </button>
+          </div>
+
+          <div class="modal-footer pt-1">
+            <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+              Hủy
+            </button>
+            <button type="submit" class="btn btn-primary float-right" [disabled]="form.invalid || formLoading">
+              <span *ngIf="formLoading" class="spinner-border spinner-border-sm mr-1"></span>Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modalView let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title ">Xem chi tiết loại chi phí</h4>
+      <button type="button" class="close" (click)="modal.dismiss()" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+      <div *ngIf="!modalLoading">
+        <table class="table table-bordered">
+          <tbody>
+            <ng-container *ngFor="let field of expenseTypeFields">
+              <tr>
+                <td><strong>{{ field.label }}</strong></td>
+                <td>{{ field.value || "Chưa có dữ liệu" }}</td>
+              </tr>
+            </ng-container>
+            <tr *ngIf="selectedExpenseType?.formulaType === 'TIERED_COST'">
+              <td colspan="2">
+                <strong>Chi phí định mức:</strong>
+                <table class="table table-sm mt-2">
+                  <thead>
+                    <tr>
+                      <th>Từ khoảng</th>
+                      <th>Đến khoảng</th>
+                      <th>Giá</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let range of selectedExpenseType?.expenseRanges">
+                      <td>{{ range.minRange }}</td>
+                      <td>{{ range.maxRange }}</td>
+                      <td>{{ formatCurrencyVND(range.price) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            <tr *ngIf="selectedExpenseType?.formulaType === 'FIXED_COST'">
+              <td><strong>Đơn giá</strong></td>
+              <td>
+                {{ formatCurrencyVND(selectedExpenseType?.basePrice) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modalDelete let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title">Xác nhận xóa</h5>
+      <button type="button" class="close" aria-label="Close" (click)="modal.close()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="selectedExpenseType">
+        Bạn có chắc chắn muốn xóa
+        <strong>{{ selectedExpenseType?.name }}</strong> không?
+      </p>
+      <p *ngIf="!selectedExpenseType">
+        Bạn có chắc chắn muốn xóa các các loại chi phí đã chọn không?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+        Hủy
+      </button>
+      <button type="button" class="btn btn-danger" (click)="deleteselectedExpenseTypes(modal)"
+        [disabled]="deleteLoading">
+        <span *ngIf="deleteLoading" class="spinner-border spinner-border-sm mr-1"></span>
+        Xóa
+      </button>
+    </div>
+  </ng-template>
+
+  <!--/ New ExpenseType -->
+</div>

@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  angular-project:
+    container_name: angular-project_dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/app/src
+      - ./angular.json:/app/angular.json
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - node_modules:/app/node_modules # Cache node_modules
+    restart: always
+    ports:
+      - 4200:4200
+    environment:
+      - HOST=0.0.0.0
+
+volumes:
+  node_modules:

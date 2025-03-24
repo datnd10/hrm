@@ -1,0 +1,138 @@
+@import "@core/scss/angular/libs/datatables.component.scss";
+@import "@core/scss/base/pages/app-user.scss";
+@import "@core/scss/angular/libs/select.component.scss";
+@import "~ngx-toastr/toastr.css";
+/* Red border for invalid input */
+/* Red border for invalid input fields */
+input.is-invalid {
+  border-color: #e74c3c !important; /* Red border */
+  box-shadow: none; /* Remove any extra shadow */
+}
+
+/* Red color for error messages */
+.invalid-feedback {
+  color: #e74c3c; /* Red color for error text */
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.p-treetable .p-treetable-thead > tr > th {
+  text-align: left;
+  padding: 1rem 1rem;
+  border-bottom: 2px solid #ebe9f1;
+  border-width: 0 0 1px 0;
+  font-weight: 600;
+  color: #6e6b7b;
+  background: #f3f2f7;
+  transition: box-shadow 0.2s;
+}
+
+.p-treetable .p-treetable-tbody > tr > td {
+  text-align: left;
+  border-top: 1px solid #ebe9f1;
+  color: #6e6b7b;
+  background-color: #ffffff;
+  border-width: 0 0 1px 0;
+  padding: 1rem 1rem;
+}
+
+.dark-layout {
+  .p-treetable .p-treetable-thead > tr > th {
+    text-align: left;
+    padding: 1rem 1rem;
+    border: 1px solid #3b4253;
+    border-width: 0 0 1px 0;
+    font-weight: 600;
+    color: #d0d2d6;
+    background: #343d55;
+    transition: box-shadow 0.2s;
+  }
+
+  .p-treetable .p-treetable-tbody > tr > td {
+    text-align: left;
+    border: 1px solid #3b4253;
+    color: #b4b7bd;
+    background-color: #283046;
+    border-width: 0 0 1px 0;
+    padding: 1rem 1rem;
+  }
+}
+/* General button styles */
+.btn-icon {
+  border: none;
+  padding: 6px;
+  margin-right: 5px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Individual button colors */
+.btn-blue {
+  background-color: rgba(
+    67,
+    139,
+    216,
+    0.2
+  ); /* Xanh dương nhạt với độ trong suốt */
+  color: #438bd8;
+}
+
+.btn-purple {
+  background-color: rgba(158, 144, 223, 0.2); /* Tím nhạt với độ trong suốt */
+  color: #9e90df;
+}
+
+.btn-red {
+  background-color: rgba(220, 53, 69, 0.2); /* Đỏ nhạt với độ trong suốt */
+  color: #dc3545;
+}
+
+.btn-green {
+  background-color: rgba(40, 167, 69, 0.2); /* Xanh lá nhạt với độ trong suốt */
+  color: #28a745;
+}
+
+.btn-orange {
+  background-color: rgba(253, 126, 20, 0.2); /* Cam nhạt với độ trong suốt */
+  color: #fd7e14;
+}
+
+/* Hover effect */
+.btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+/* Icon alignment */
+.btn-icon i {
+  font-size: 16px;
+}
+
+/* Dark mode adjustments */
+body.dark-layout .btn-icon {
+  background-color: transparent; /* Nền trong suốt cho dark layout */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Viền nhạt để phù hợp với dark layout */
+}
+
+body.dark-layout .btn-blue {
+  color: #78c0ff; /* Xanh dương sáng hơn cho dark layout */
+}
+
+body.dark-layout .btn-purple {
+  color: #b29eff; /* Tím sáng hơn cho dark layout */
+}
+
+body.dark-layout .btn-red {
+  color: #ff7b82; /* Đỏ sáng hơn cho dark layout */
+}
+
+body.dark-layout .btn-green {
+  color: #8df5a0; /* Xanh lá sáng hơn cho dark layout */
+}
+
+body.dark-layout .btn-orange {
+  color: #ffc085; /* Cam sáng hơn cho dark layout */
+}

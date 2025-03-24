@@ -1,0 +1,50 @@
+<div class="row mt-1">
+    <div class="col-md-6 col-12">
+        <h4 class="card-header">{{ tableTitle }}</h4>
+    </div>
+
+    <div class="col-md-6 col-12 d-flex justify-content-start justify-content-md-end">
+        <div class="d-flex align-items-center justify-content-end pr-2 pb-1 pb-md-0">
+            <ng-container *ngIf="showActionButton">
+                <ng-container *ngIf="showExportImportButton">
+                    <button class="btn btn-square btn-success ml-1" rippleEffect (click)="exportImport('import')"
+                        title="Import">
+                        <i data-feather="upload" class="d-inline-block icon-small"></i>
+                    </button>
+                    <button class="btn btn-square btn-warning ml-1" rippleEffect (click)="exportImport('export')"
+                        title="Export">
+                        <i data-feather="download" class="d-inline-block icon-small"></i>
+                    </button>
+                </ng-container>
+
+                <button class="btn btn-square btn-info ml-1 " rippleEffect (click)="addRecord()" title="Thêm bản ghi">
+                    <i data-feather="plus" class="d-inline-block icon-small"></i>
+                </button>
+
+                <!-- Nút Delete với điều kiện disabled -->
+                <button *ngIf="tableData && tableData.length > 0" class="btn btn-square btn-danger ml-1 " rippleEffect
+                    [disabled]="!anySelected()" (click)="sendSelectedDatas('delete')" title="Xóa bản ghi">
+                    <i data-feather="trash" class="d-inline-block icon-small"></i>
+                </button>
+                <ng-container *ngIf="showChangeStatusButton && tableData && tableData.length > 0">
+                    <button type="button" class="btn btn-square btn-success ml-1 " rippleEffect
+                        [disabled]="!anySelected()" (click)="sendSelectedDatas('approve')" title="Duyệt bản ghi">
+                        <i data-feather="check" class="d-inline-block icon-small"></i>
+                    </button>
+                    <button type="button" class="btn btn-square btn-warning ml-1" title="Từ chối bản ghi" rippleEffect
+                        [disabled]="!anySelected()" (click)="sendSelectedDatas('reject')">
+                        <i data-feather="x-circle" class="d-inline-block icon-small"></i>
+                    </button>
+                </ng-container>
+                <ng-container *ngIf="showSaveButton">
+                    <button class="btn btn-square btn-info ml-1" rippleEffect (click)="sendSelectedDatas()">
+                        <i data-feather="save" class="d-inline-block icon-small"></i>
+                    </button>
+                </ng-container>
+            </ng-container>
+
+            <!-- Nút Save, không ảnh hưởng bởi disabled -->
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,1 @@
+{"statusCode":500,"message":"Unknown column 'isSalary' in 'field list'","timestamp":"2024-11-25T07:33:31.042Z","path":"/api/v1/expense/get-template/branchId/all/isSalary/true/time/T21_2024"}

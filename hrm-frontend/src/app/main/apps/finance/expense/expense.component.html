@@ -1,0 +1,555 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <div>
+          <app-action [tableData]="expenseArray" [tableTitle]="tableTitle" [showActionButton]="true"
+            [showExportImportButton]="true" [anySelected]="anySelected.bind(this)" (onAdd)="addExpense()"
+            [showChangeStatusButton]="true" (onSendSelected)="handleSendSelected($event)"
+            (onExportImport)="handleExportImport($event)">
+          </app-action>
+        </div>
+        <div class="card-body">
+          <div class="users-list-filter">
+            <form>
+              <div class="row">
+                <div class="col-12 col-md-4">
+                  <fieldset class="form-group">
+                    <input type="text" [(ngModel)]="searchByName" #searchInput name="search"
+                      placeholder="Tìm kiếm theo tên chi phí" class="form-control"
+                      (keyup.enter)="onSearch(searchInput.value)" />
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-3">
+                  <fieldset class="form-group">
+                    <ng-select [items]="branchsArray" [(ngModel)]="searchByBranch" name="branchName"
+                      bindLabel="branchName" bindValue="id" placeholder=" Chọn chi nhánh"
+                      (change)="filterByBranch($event)"></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-3">
+                  <app-month-picker [selectedMonthYear]="selectedMonthYearFilter"
+                    (onMonthSelect)="updateBillingCycle($event, 'filter')"></app-month-picker>
+                </div>
+                <div class="col-12 col-md-2">
+                  <fieldset class="form-group">
+                    <ng-select [items]="statusOptions" [(ngModel)]="searchByStatus" name="status" bindLabel="name"
+                      bindValue="value" placeholder=" Chọn trạng thái" (change)="filterByStatus($event)"></ng-select>
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div>
+          <div *ngIf="loading" class="text-center my-5">
+            <!-- Bạn có thể thêm một spinner ở đây nếu muốn -->
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden"></span>
+            </div>
+            <div>Đang tải dữ liệu...</div>
+          </div>
+
+          <app-table *ngIf="!loading" [showChangeStatusButton]="true" [showActionButton]="true"
+            [tableTitle]="tableTitle" [tableData]="expenseArray" [columnArray]="columnArray" [totalItems]="totalItems"
+            [itemsPerPage]="itemsPerPage" [currentPage]="currentPage" [totalPages]="totalPage"
+            (onPageChange)="onPageChange($event)" (onItemsPerPageChange)="onItemsPerPageChange($event)"
+            (onEdit)="editExpense($event)" (onDelete)="deleteExpense($event)" (onView)="viewExpense($event)"
+            (onApprove)="approveExpense($event)" (onReject)="rejectExpense($event)"
+            (onSelectedItemsChange)="handleSelectedItemsChange($event)"
+            (onSortChange)="onSortChange($event)"></app-table>
+        </div>
+
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+
+  <!-- New expense type -->
+  <ng-template #modalBasic let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title" id="myModalLabel1">
+        <ng-container *ngIf="modalMode === 'add'">Thêm mới chi phí</ng-container>
+        <ng-container *ngIf="modalMode === 'edit'">Chỉnh sửa chi phí</ng-container>
+        <ng-container *ngIf="modalMode === 'view'">Xem chi tiết chi phí</ng-container>
+      </h4>
+      <button type="button" class="close" (click)="onCloseModal(modal)" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body" tabindex="0" ngbAutofocus>
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+      <div class="form-area" *ngIf="!modalLoading">
+        <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+          <div class="section">
+            <h5 class="section-title">1. Thông tin chung</h5>
+            <div class="row">
+              <div class="form-group col-md-4">
+                <label for="expenseName">Tên chí phí</label>
+                <input type="text" id="expenseName" placeholder="Mô tả" class="form-control" name="expenseName"
+                  formControlName="expenseName" [ngClass]="{
+                    'is-invalid':
+                      form.controls['expenseName']?.touched &&
+                      form.controls['expenseName']?.invalid,
+                    'is-valid':
+                      form.controls['expenseName']?.valid &&
+                      form.controls['expenseName']?.touched
+                  }" />
+                <div *ngIf="
+                    form.controls['expenseName']?.touched &&
+                    form.controls['expenseName']?.invalid
+                  " class="invalid-feedback">
+                  <div *ngIf="form.controls['expenseName'].errors?.['required']">
+                    Tên chi phí là bắt buộc
+                  </div>
+                  <div *ngIf="form.controls['expenseName'].errors?.['minlength']">
+                    Tên chi phí phải có ít nhất 5 ký tự
+                  </div>
+                  <div *ngIf="form.controls['expenseName'].errors?.['maxlength']">
+                    Tên chi phí không được vượt quá 255 ký tự
+                  </div>
+                  <div *ngIf="form.controls['expenseName'].errors?.['pattern']">
+                    Tên chi phí không được là số
+                  </div>
+                </div>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="">Chi nhánh:</label>
+                <app-select-branch [selectedBranch]="selectedBranch" (branchChanged)="onBranchChanged($event)"
+                  (branchAdded)="onBranchAdded($event)" (branchBlurred)="onBranchBlurred()"
+                  [isDisabled]="isBranchDisabled"
+                  [ngClass]="{'is-invalid': form.get('branchId')?.touched && form.get('branchId')?.invalid}"></app-select-branch>
+                <div *ngIf="form.get('branchId')?.touched && form.get('branchId')?.invalid" class="invalid-feedback">
+                  Chi nhánh là bắt buộc
+                </div>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="">Kỳ thanh toán:</label>
+                <app-month-picker [selectedMonthYear]="selectedMonthYearModal"
+                  (onMonthSelect)="updateBillingCycle($event, 'modal')" [disabled]="isMonthDisabled"></app-month-picker>
+              </div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="d-flex align-items-center justify-content-between">
+              <h5 class="section-title">2. Dịch vụ và chi phí</h5>
+              <button *ngIf="modalMode !== 'view'" type="button" class="btn btn-primary ml-1"
+                (click)="onOpenExpenseTypeModal(otherModal,'OTHER')">
+                <i data-feather="plus" class="d-inline-block"></i>
+                <!-- Icon dấu cộng -->
+              </button>
+            </div>
+
+            <ng-template #otherModal let-modal>
+              <div class="modal-header">
+                <h5 class="modal-title">Thêm mới chi phí</h5>
+                <button type="button" class="close" aria-label="Close" (click)="onCloseExpenseTypeModal(modal)">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <app-expense-type-table [expenseType]="selectedExpenseTypeModal"
+                  [selectedItemsFromParent]="selectedOtherItemsFromChild"
+                  (selectedItemsChange)="onSelectedItemsFromChild('OTHER',$event)">
+                </app-expense-type-table>
+              </div>
+              <div class="modal-footer pt-1">
+                <button type="button" class="btn btn-secondary" (click)="onCloseExpenseTypeModal(modal)">Đóng</button>
+                <button type="button" class="btn btn-primary"
+                  (click)="onConfirmExpenseTypeModal('OTHER', modal)">Chọn</button>
+              </div>
+            </ng-template>
+
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm" formArrayName="otherItems">
+                <thead>
+                  <tr>
+                    <th>Loại chi phí</th>
+                    <th>Đơn giá</th>
+                    <th>Số lượng</th>
+                    <th>Số lượng chuẩn</th>
+                    <th>Thành tiền</th>
+                    <th *ngIf="modalMode !== 'view'">
+                      <span class="float-right">Thao tác</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of otherItems.controls; let i = index" [formGroupName]="i">
+                    <!-- Tên chi phí -->
+                    <td>
+                      <input formControlName="expenseItemName" type="text" class="form-control"
+                        placeholder="Tên chi phí" disabled />
+                    </td>
+
+                    <!-- Giá -->
+                    <td>
+                      <input formControlName="price" type="text" class="form-control" placeholder="Giá"
+                        appCurrencyFormat [readonly]="item.get('formulaType').value !== 'VARIABLE_COST'" />
+                      <div *ngIf="item.get('price').invalid && (item.get('price').dirty || item.get('price').touched)"
+                        class="text-danger">
+                        <div *ngIf="item.get('price').errors?.required">Giá là bắt buộc</div>
+                        <div *ngIf="item.get('price').errors?.min">Giá là số dương</div>
+                      </div>
+                      <div *ngIf="item.get('price').errors?.apiError" class="text-danger">
+                        {{ item.get('price').errors.apiError }}
+                      </div>
+                    </td>
+
+                    <!-- Số lượng -->
+                    <td>
+                      <input formControlName="quantity" type="number" min="0" class="form-control"
+                        placeholder="Số lượng" />
+                      <div
+                        *ngIf="item.get('quantity').invalid && (item.get('quantity').dirty || item.get('quantity').touched)"
+                        class="text-danger">
+                        <small *ngIf="item.get('quantity').errors?.required">Số lượng là bắt buộc</small>
+                        <small *ngIf="item.get('quantity').errors?.min">Số lượng là số dương</small>
+                      </div>
+                      <div *ngIf="item.get('quantity').errors?.apiError" class="text-danger">
+                        {{ item.get('quantity').errors.apiError }}
+                      </div>
+                    </td>
+
+                    <!-- Số lượng chuẩn -->
+                    <td>
+                      <input formControlName="baseQuantity" type="number" class="form-control"
+                        placeholder="Số lượng chuẩn" [readonly]="item.value.formulaType !== 'BASE_SALARY'" />
+                      <div
+                        *ngIf="item.get('baseQuantity').invalid && (item.get('baseQuantity').dirty || item.get('baseQuantity').touched)"
+                        class="text-danger">
+                        <small *ngIf="item.get('baseQuantity').errors?.min">Số lượng chuẩn không âm</small>
+                      </div>
+                      <div *ngIf="item.get('baseQuantity').errors?.apiError" class="text-danger">
+                        {{ item.get('baseQuantity').errors.apiError }}
+                      </div>
+                    </td>
+
+                    <!-- Thành tiền -->
+                    <td style="width: 200px">
+                      {{
+                      calculateTotalAmount(
+                      item.value.formulaType,
+                      item.value.price,
+                      item.value.quantity,
+                      item.value.baseQuantity,
+                      item.value.expenseRanges
+                      ) | number : '1.0-0'
+                      }} ₫
+                    </td>
+
+                    <!-- Thao tác -->
+                    <td *ngIf="modalMode !== 'view'">
+                      <button type="button" class="btn btn-danger float-right" (click)="removeExpenseItem('OTHER', i)">
+                        <i data-feather="trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+          <div class="section">
+            <div class="d-flex align-items-center justify-content-between">
+              <h5 class="section-title">3. Chi phí giảm trừ</h5>
+              <button *ngIf="modalMode !== 'view'" type="button" class="btn btn-primary ml-1"
+                (click)="onOpenExpenseTypeModal(deductionModal, 'DEDUCTION')">
+                <i data-feather="plus" class="d-inline-block"></i>
+              </button>
+            </div>
+
+            <ng-template #deductionModal let-modal>
+              <div class="modal-header">
+                <h5 class="modal-title">Thêm mới chi phí</h5>
+                <button type="button" class="close" aria-label="Close" (click)="onCloseExpenseTypeModal(modal)">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <app-expense-type-table [expenseType]="selectedExpenseTypeModal"
+                  [selectedItemsFromParent]="selectedDeductionItemsFromChild"
+                  (selectedItemsChange)="onSelectedItemsFromChild('DEDUCTION',$event)">
+                </app-expense-type-table>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="onCloseExpenseTypeModal(modal)">Đóng</button>
+                <button type="button" class="btn btn-primary"
+                  (click)="onConfirmExpenseTypeModal('DEDUCTION',modal)">Chọn</button>
+              </div>
+            </ng-template>
+
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm" formArrayName="deductionItems">
+                <thead>
+                  <tr>
+                    <th>Loại chi phí</th>
+                    <th>Đơn giá</th>
+                    <th>Số lượng</th>
+                    <th>Số lượng chuẩn</th>
+                    <th>Thành tiền</th>
+                    <th *ngIf="modalMode !== 'view'">
+                      <span class="float-right">
+                        Thao tác
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of deductionItems.controls; let i = index" [formGroupName]="i">
+                    <td>
+                      <input formControlName="expenseItemName" type="text" class="form-control"
+                        placeholder="Tên chi phí" disabled />
+                    </td>
+
+                    <!-- Giá -->
+                    <td>
+                      <input formControlName="price" type="text" class="form-control" placeholder="Giá"
+                        appCurrencyFormat [readonly]="item.get('formulaType').value !== 'VARIABLE_COST'" />
+                      <div *ngIf="item.get('price').invalid && (item.get('price').dirty || item.get('price').touched)"
+                        class="text-danger">
+                        <div *ngIf="item.get('price').errors?.required">Giá là bắt buộc</div>
+                        <div *ngIf="item.get('price').errors?.min">Giá là số dương</div>
+                      </div>
+                      <div *ngIf="item.get('price').errors?.apiError" class="text-danger">
+                        {{ item.get('price').errors.apiError }}
+                      </div>
+                    </td>
+
+                    <!-- Số lượng -->
+                    <td>
+                      <input formControlName="quantity" type="number" min="0" class="form-control"
+                        placeholder="Số lượng" />
+                      <div
+                        *ngIf="item.get('quantity').invalid && (item.get('quantity').dirty || item.get('quantity').touched)"
+                        class="text-danger">
+                        <small *ngIf="item.get('quantity').errors?.required">Số lượng là bắt buộc</small>
+                        <small *ngIf="item.get('quantity').errors?.min">Số lượng là số dương</small>
+                      </div>
+                      <div *ngIf="item.get('quantity').errors?.apiError" class="text-danger">
+                        {{ item.get('quantity').errors.apiError }}
+                      </div>
+                    </td>
+
+                    <!-- Số lượng chuẩn -->
+                    <td>
+                      <input formControlName="baseQuantity" type="number" class="form-control"
+                        placeholder="Số lượng chuẩn" [readonly]="item.value.formulaType !== 'BASE_SALARY'" />
+                      <div
+                        *ngIf="item.get('baseQuantity').invalid && (item.get('baseQuantity').dirty || item.get('baseQuantity').touched)"
+                        class="text-danger">
+                        <small *ngIf="item.get('baseQuantity').errors?.min">Số lượng chuẩn không âm</small>
+                      </div>
+                      <div *ngIf="item.get('baseQuantity').errors?.apiError" class="text-danger">
+                        {{ item.get('baseQuantity').errors.apiError }}
+                      </div>
+                    </td>
+
+                    <!-- Thành tiền -->
+                    <td style="width: 200px">
+                      {{
+                      calculateTotalAmount(
+                      item.value.formulaType,
+                      item.value.price,
+                      item.value.quantity,
+                      item.value.baseQuantity,
+                      item.value.expenseRanges
+                      ) | number : '1.0-0'
+                      }} ₫
+                    </td>
+
+                    <td *ngIf="modalMode !== 'view'">
+                      <button type="button" class="btn btn-danger float-right"
+                        (click)="removeExpenseItem('DEDUCTION',i)">
+                        <i data-feather="trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="section">
+            <!-- Tiền trước thuế -->
+            <div class="row justify-content-end">
+              <div class="form-group col-md-3">
+                <label for="preTaxAmount">Tiền trước thuế:</label>
+                <input type="text" id="preTaxAmount" appCurrencyFormat class="form-control text-end"
+                  formControlName="preTaxAmount" disabled />
+              </div>
+            </div>
+
+            <!-- Thuế -->
+            <div class="row justify-content-end">
+              <div class="form-group col-md-3">
+                <label for="taxAmount">Thuế (%):</label>
+                <input type="number" id="taxAmount" class="form-control text-end" formControlName="taxRate" />
+              </div>
+            </div>
+
+            <!-- Tiền sau thuế -->
+            <div class="row justify-content-end">
+              <div class="form-group col-md-3">
+                <label for="postTaxAmount">Tiền sau thuế:</label>
+                <input type="text" id="postTaxAmount" appCurrencyFormat class="form-control text-end"
+                  formControlName="postTaxAmount" disabled />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer pt-1">
+            <button type="button" class="btn btn-secondary" (click)="onCloseModal(modal)">
+              Đóng
+            </button>
+            <button *ngIf="modalMode !== 'view'" type="submit" class="btn btn-primary float-right"
+              [disabled]="formLoading || form.invalid">
+              <span *ngIf="formLoading" class="spinner-border spinner-border-sm mr-1"></span>
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modal let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title">
+        Xác nhận
+        {{
+        actionType === "delete"
+        ? "xóa"
+        : actionType === "approve"
+        ? "duyệt"
+        : "từ chối"
+        }}
+      </h5>
+      <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="selectedExpense">
+        Bạn có chắc chắn muốn
+        {{
+        actionType === "delete"
+        ? "xóa"
+        : actionType === "approve"
+        ? "duyệt"
+        : "từ chối"
+        }}
+        chi phí
+        <strong>{{ selectedExpense?.name }}</strong> không?
+      </p>
+      <p *ngIf="!selectedExpense">
+        Bạn có chắc chắn muốn
+        {{
+        actionType === "delete"
+        ? "xóa"
+        : actionType === "approve"
+        ? "duyệt"
+        : "từ chối"
+        }}
+        các chi phí đã chọn không?
+      </p>
+      <div class="form-row" *ngIf="actionType === 'approve'">
+        <!-- Trường Tài khoản nguồn -->
+        <div class="form-group col-md-6">
+          <label for="sourceAccount">Tài khoản nguồn:</label>
+          <ng-select [items]="bankAccounts" bindLabel="accountName" bindValue="id" placeholder="Chọn tài khoản nguồn"
+            [(ngModel)]="selectedSourceAccount"></ng-select>
+        </div>
+
+        <!-- Trường Ngày thực chi -->
+        <div class="form-group col-md-6">
+          <label for="expenseDate">Ngày thực chi:</label>
+          <input type="datetime-local" id="expenseDate" class="form-control" [(ngModel)]="selectedExpenseDate" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+        Đóng
+      </button>
+      <button type="button" class="btn" [ngClass]="{
+          'btn-danger': actionType === 'delete',
+          'btn-success': actionType === 'approve',
+          'btn-warning': actionType === 'reject'
+        }" (click)="confirmAction(modal)" [disabled]="
+      deleteLoading ||
+      (actionType === 'approve' && (!selectedSourceAccount || !selectedExpenseDate))
+    ">
+        <span *ngIf="deleteLoading" class="spinner-border spinner-border-sm mr-1"></span>
+        {{
+        actionType === "delete"
+        ? "Xóa"
+        : actionType === "approve"
+        ? "Duyệt"
+        : "Từ chối"
+        }}
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #modalImportExportService let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title">
+        {{
+        this.actionImportExport === "import" ? "Nhập dữ liệu" : "Xuất dữ liệu"
+        }}
+      </h5>
+      <button type="button" class="close" aria-label="Close" (click)="onCloseImportExportModal(modal)">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <h5>
+        {{
+        this.actionImportExport === "import"
+        ? "1. Tải file dữ liệu mẫu"
+        : "Xuất dữ liệu"
+        }}
+      </h5>
+      <!-- Chọn tháng và tòa nhà -->
+      <app-month-picker [selectedMonthYear]="selectedMonthYearModal"
+        (onMonthSelect)="updateBillingCycle($event, 'template')"></app-month-picker>
+
+      <div class="form-group">
+        <label>Chọn chi nhánh</label>
+        <ng-select [(ngModel)]="selectedBranchImportExport" [items]="branches" name="branchName1" bindLabel="branchName"
+          placeholder=" Chọn chi nhánh" (change)="onBranchImportExportChange($event)">
+        </ng-select>
+      </div>
+
+      <div *ngIf="actionImportExport === 'import'">
+        <div class="form-group">
+          <label>File yêu cầu định dạng excel -
+            <a class="text-primary" (click)="downloadTemplate()">Tải file mẫu tại đây</a></label>
+        </div>
+        <hr />
+        <h5>2. Nhập dữ liệu</h5>
+        <div class="form-group">
+          <input type="file" class="form-control-file" (change)="onFileSelect($event)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onCloseImportExportModal(modal)">
+        Đóng
+      </button>
+      <button type="button" class="btn btn-primary" (click)="submitData(modal)"
+        [disabled]="isUploading || !selectedFile">
+        <span *ngIf="isUploading" class="spinner-border spinner-border-sm mr-1"></span>
+        {{
+        this.actionImportExport === "import" ? "Nhập dữ liệu" : "Xuất dữ liệu"
+        }}
+      </button>
+    </div>
+  </ng-template>
+</div>

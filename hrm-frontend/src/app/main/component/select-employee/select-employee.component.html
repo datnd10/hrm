@@ -1,0 +1,579 @@
+<div>
+    <ng-select [items]="employees" bindLabel="fullName" bindValue="id" placeholder="Chọn nhân viên"
+        (change)="onEmployeeChange($event)" [compareWith]="compareEmployees" [(ngModel)]="selectedEmployee"
+        (blur)="onBlur()" [disabled]="isDisabled">
+    </ng-select>
+
+    <ng-template #modalAddEmployee let-modal>
+        <div class="modal-header">
+            <h4 class="modal-title" id="myModalLabel1">
+                Thêm mới nhân viên
+            </h4>
+            <button type="button" class="close" (click)="onCloseEmployeeModal(modal)" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body" tabindex="0" ngbAutofocus>
+            <div class="form-area">
+                <form [formGroup]="employeeForm" (ngSubmit)="onSubmitEmployeeReactiveForm(modal)">
+                    <div class="section">
+                        <h5 class="section-title">1.Thông tin chung</h5>
+                        <!-- Tên nhân viên -->
+                        <div class="form-row">
+                            <div class="form-group col-md-5">
+                                <label for="fullName">Họ và tên <span class="text-danger">(*)</span></label>
+                                <input type="text" class="form-control" placeholder="Họ và tên"
+                                    formControlName="fullName" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['fullName'].touched &&
+                                employeeForm.controls['fullName'].invalid,
+                              'is-valid':
+                                employeeForm.controls['fullName'].touched &&
+                                employeeForm.controls['fullName'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['fullName'].touched &&
+                              employeeForm.controls['fullName'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['fullName'].errors?.required">
+                                        Họ và tên là bắt buộc
+                                    </div>
+                                    <div *ngIf="
+                                employeeForm.controls['fullName'].errors?.minlength ||
+                                employeeForm.controls['fullName'].errors?.maxlength
+                              ">
+                                        Họ và tên phải có ít nhất 3 ký tự và tối đa 100 ký tự
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['fullName'].errors?.duplicate">
+                                        Họ và tên đã tồn tại.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['fullName'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['fullName'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-3">
+                                <label for="province">Giới tính <span class="text-danger">(*)</span></label>
+                                <ng-select [items]="genders" bindLabel="name" bindValue="name" formControlName="gender"
+                                    placeholder="Chọn Giới tính">
+                                </ng-select>
+                                <div *ngIf="
+                              employeeForm.controls['gender'].touched &&
+                              employeeForm.controls['gender'].invalid
+                            " class="text-danger">
+                                    <div *ngIf="employeeForm.controls['gender'].errors?.required">
+                                        Giới tính là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['gender'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['gender'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="dateOfBirth">Ngày sinh <span class="text-danger">(*)</span></label>
+                                <input type="date" class="form-control" formControlName="dateOfBirth" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.get('dateOfBirth').dirty &&
+                                employeeForm.get('dateOfBirth').invalid,
+                              'is-valid':
+                                employeeForm.get('dateOfBirth').dirty &&
+                                employeeForm.get('dateOfBirth').valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.get('dateOfBirth').dirty &&
+                              employeeForm.get('dateOfBirth').invalid
+                            ">
+                                    <div *ngIf="employeeForm.get('dateOfBirth').errors?.required">
+                                        Ngày sinh là bắt buộc
+                                    </div>
+                                    <div *ngIf="
+                                employeeForm.get('dateOfBirth').hasError('futureDate') &&
+                                employeeForm.get('dateOfBirth').touched
+                              ">
+                                        Ngày sinh không được ở tương lai.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['gender'].errors?.apiError"></div>
+                                    <div *ngFor="
+                                let error of employeeForm.controls['dateOfBirth'].errors?.apiError
+                              ">
+                                        {{ error }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <!-- Tỉnh/Thành phố -->
+                            <div class="form-group col-md-3">
+                                <label for="province">Vai trò <span class="text-danger">(*)</span></label>
+                                <ng-select [items]="roles" bindLabel="name" bindValue="id" formControlName="roleId"
+                                    placeholder="Chọn Vai trò">
+                                </ng-select>
+                                <div *ngIf="
+                              employeeForm.controls['roleId'].touched &&
+                              employeeForm.controls['roleId'].invalid
+                            " class="text-danger">
+                                    <div *ngIf="employeeForm.controls['roleId'].errors?.required">
+                                        Vai trò là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['roleId'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['roleId'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="">Chi nhánh <span class="text-danger">(*)</span></label>
+                                <app-select-branch [selectedBranch]="selectedBranch"
+                                    (branchChanged)="onBranchChanged($event)" (branchAdded)="onBranchAdded($event)"
+                                    (branchBlurred)="onBranchBlurred()"
+                                    [ngClass]="{'is-invalid': employeeForm.get('branchId')?.touched && employeeForm.get('branchId')?.invalid}"></app-select-branch>
+                                <div *ngIf="employeeForm.get('branchId')?.touched && employeeForm.get('branchId')?.invalid"
+                                    class="invalid-feedback">
+                                    Chi nhánh là bắt buộc
+                                </div>
+                            </div>
+                            <!-- Quận/Huyện -->
+                            <div class="form-group col-md-3">
+                                <label for="district">Phòng ban <span class="text-danger">(*)</span></label>
+                                <app-select-department [selectedBranch]="seletedBranchModalAdd"
+                                    [selectedDepartment]="selectedDepartment"
+                                    (departmentChanged)="onDepartmentChanged($event)"
+                                    (departmentAdded)="onDepartmentAdded($event)"
+                                    (departmentBlurred)="onDepartmentBlurred()" [isDisabled]="isDepartmentDisabled"
+                                    [ngClass]="{'is-invalid': employeeForm.get('departmentId')?.touched && employeeForm.get('departmentId')?.invalid}"></app-select-department>
+                                <div *ngIf="
+                          employeeForm.get('departmentId').touched &&
+                          employeeForm.get('departmentId').invalid
+                        " class="invalid-feedback">
+                                    Phòng ban là bắt buộc
+                                </div>
+                            </div>
+
+                            <!-- Xã/Phường -->
+                            <div class="form-group col-md-3">
+                                <label for="positionId">Chức vụ <span class="text-danger">(*)</span></label>
+                                <app-select-position [selectedDepartment]="selectedDepartment"
+                                    [selectedPosition]="selectedPositionModalAdd"
+                                    (positionChanged)="onPositionChanged($event)"
+                                    (positionAdded)="onPositionAdded($event)" (positionBlurred)="onPositionBlurred()"
+                                    [isDisabled]="isPositionDisabled"
+                                    [ngClass]="{'is-invalid': employeeForm.get('positionId')?.touched && employeeForm.get('positionId')?.invalid}"></app-select-position>
+                                <div *ngIf="
+                          employeeForm.get('positionId').touched &&
+                          employeeForm.get('positionId').invalid
+                        " class="invalid-feedback">
+                                    Chức vụ là bắt buộc
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <!-- Tỉnh/Thành phố -->
+                            <div class="form-group col-md-4">
+                                <label for="province">Tỉnh/Thành phố</label>
+                                <ng-select [items]="provinces" bindLabel="name" bindValue="code"
+                                    formControlName="province" placeholder="Chọn Tỉnh/Thành phố"
+                                    (change)="onProvinceChange($event)">
+                                </ng-select>
+                                <div *ngIf="
+                              employeeForm.controls['province'].touched &&
+                              employeeForm.controls['province'].invalid
+                            " class="text-danger">
+                                    <div *ngIf="employeeForm.controls['province'].errors?.required">
+                                        Tỉnh/Thành phố là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['province'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['province'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quận/Huyện -->
+                            <div class="form-group col-md-4">
+                                <label for="district">Quận/Huyện</label>
+                                <ng-select [items]="districts" bindLabel="name" bindValue="code"
+                                    formControlName="district" placeholder="Chọn Quận/Huyện"
+                                    (change)="onDistrictChange($event)">
+                                </ng-select>
+                                <div *ngIf="
+                              employeeForm.controls['district'].touched &&
+                              employeeForm.controls['district'].invalid
+                            " class="text-danger">
+                                    <div *ngIf="employeeForm.controls['district'].errors?.required">
+                                        Quận/Huyện là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['district'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['district'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Xã/Phường -->
+                            <div class="form-group col-md-4">
+                                <label for="ward">Xã/Phường</label>
+                                <ng-select [items]="wards" bindLabel="name" bindValue="code" formControlName="ward"
+                                    placeholder="Chọn Xã/Phường" (change)="onWardChange($event)">
+                                </ng-select>
+                                <div *ngIf="
+                              employeeForm.controls['ward'].touched &&
+                              employeeForm.controls['ward'].invalid
+                            " class="text-danger">
+                                    <div *ngIf="employeeForm.controls['ward'].errors?.required">
+                                        Xã/Phường là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['ward'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['ward'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Địa chỉ cụ thể -->
+                        <div class="form-group">
+                            <label for="specificAddress">Địa chỉ cụ thể</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fa fa-map-marker"></i>
+                                    </span>
+                                </div>
+                                <input type="text" class="form-control" formControlName="specificAddress"
+                                    placeholder="Nhập địa chỉ cụ thể" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['specificAddress'].touched &&
+                                employeeForm.controls['specificAddress'].invalid,
+                              'is-valid':
+                                employeeForm.controls['specificAddress'].touched &&
+                                employeeForm.controls['specificAddress'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['specificAddress'].touched &&
+                              employeeForm.controls['specificAddress'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['specificAddress'].errors?.required">
+                                        Địa chỉ cụ thể là bắt buộc
+                                    </div>
+                                    <div *ngIf="
+                                employeeForm.controls['specificAddress'].errors?.minlength ||
+                                employeeForm.controls['specificAddress'].errors?.maxlength
+                              ">
+                                        Địa chỉ phải có ít nhất 3 ký tự và tối đa 255 ký tự
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['specificAddress'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['specificAddress'].errors
+                                    ?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Email -->
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="email">Email <span class="text-danger">(*)</span></label>
+                                <input type="email" class="form-control" placeholder="Email" formControlName="email"
+                                    [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['email'].touched &&
+                                employeeForm.controls['email'].invalid,
+                              'is-valid':
+                                employeeForm.controls['email'].touched &&
+                                employeeForm.controls['email'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['email'].touched &&
+                              employeeForm.controls['email'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['email'].errors?.required">
+                                        Email là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['email'].errors?.pattern">
+                                        Email không hợp lệ
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['email'].errors?.duplicate">
+                                        Email đã tồn tại.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['email'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['email'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label for="Mật khẩu">Mật khẩu <span class="text-danger">(*)</span></label>
+                                <input type="password" class="form-control" placeholder="Mật khẩu"
+                                    formControlName="password" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['password'].touched &&
+                                employeeForm.controls['password'].invalid,
+                              'is-valid':
+                                employeeForm.controls['password'].touched &&
+                                employeeForm.controls['password'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['password'].touched &&
+                              employeeForm.controls['password'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['password'].errors?.required">
+                                        Mật khẩu là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['password'].errors?.pattern">
+                                        Mật khẩu phải ít nhất 8 ký tự. Bao gồm số, ký tự đặc biệt,
+                                        chữ in hoa.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['password'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['password'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <!-- Số điện thoại -->
+                            <div class="form-group col-md-4">
+                                <label for="phoneNumber">Số điện thoại <span class="text-danger">(*)</span></label>
+                                <input type="text" class="form-control" placeholder="Số điện thoại"
+                                    formControlName="phoneNumber" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['phoneNumber'].touched &&
+                                employeeForm.controls['phoneNumber'].invalid,
+                              'is-valid':
+                                employeeForm.controls['phoneNumber'].touched &&
+                                employeeForm.controls['phoneNumber'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['phoneNumber'].touched &&
+                              employeeForm.controls['phoneNumber'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['phoneNumber'].errors?.required">
+                                        Số điện thoại là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['phoneNumber'].errors?.pattern">
+                                        Số điện thoại không hợp lệ. Số điện thoại phải là 10 chữ số.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['phoneNumber'].errors?.duplicate">
+                                        Số điện thoại đã tồn tại.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['phoneNumber'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['phoneNumber'].errors
+                                    ?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="idCard">CCCD</label>
+                                <input type="text" class="form-control" placeholder="CCCD" formControlName="idCard"
+                                    [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['idCard'].touched &&
+                                employeeForm.controls['idCard'].invalid,
+                              'is-valid':
+                                employeeForm.controls['idCard'].touched &&
+                                employeeForm.controls['idCard'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['idCard'].touched &&
+                              employeeForm.controls['idCard'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['idCard'].errors?.required">
+                                        CCCD là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['idCard'].errors?.pattern">
+                                        CCCD không hợp lệ. CCCD phải là 12 chữ số.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['idCard'].errors?.duplicate">
+                                        CCCD đã tồn tại.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['idCard'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['idCard'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mã số thuế -->
+                            <div class="form-group col-md-4">
+                                <label for="taxCode">Mã số thuế</label>
+                                <input type="text" class="form-control" placeholder="Mã số thuế"
+                                    formControlName="taxCode" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['taxCode'].touched &&
+                                employeeForm.controls['taxCode'].invalid,
+                              'is-valid':
+                                employeeForm.controls['taxCode'].touched &&
+                                employeeForm.controls['taxCode'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['taxCode'].touched &&
+                              employeeForm.controls['taxCode'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['taxCode'].errors?.required">
+                                        Mã số thuế là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['taxCode'].errors?.pattern">
+                                        Mã số thuế không đúng định dạng. Mã số thuế phải là 10 hoặc
+                                        13 số.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['taxCode'].errors?.duplicate">
+                                        Mã số thuế đã tồn tại.
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['taxCode'].errors?.apiError">
+                                        <div *ngFor="
+                                  let error of employeeForm.controls['taxCode'].errors?.apiError
+                                ">
+                                            {{ error }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Thêm tài khoản cho nhân viên -->
+                    <div class="section">
+                        <h5 class="section-title">2. Thông tin tài khoản</h5>
+                        <!-- Tên Tài Khoản -->
+                        <div class="form-row">
+                            <!-- Ngân Hàng -->
+                            <div class="form-group col-md-4">
+                                <label for="bankName">Ngân hàng <span class="text-danger">(*)</span></label>
+                                <ng-select [items]="bankList" bindLabel="bankName" bindValue="code"
+                                    formControlName="bankName" placeholder="Chọn ngân hàng" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['bankName'].touched &&
+                                employeeForm.controls['bankName'].invalid,
+                              'is-valid':
+                                employeeForm.controls['bankName'].touched &&
+                                employeeForm.controls['bankName'].valid
+                            }">
+                                </ng-select>
+                                <!-- Validation message -->
+                                <div *ngIf="
+                              employeeForm.controls['bankName'].touched &&
+                              employeeForm.controls['bankName'].invalid
+                            " class="invalid-feedback">
+                                    <div *ngIf="employeeForm.controls['bankName'].errors?.required">
+                                        Ngân hàng là bắt buộc
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="accountName">Tên tài khoản</label>
+                                <input type="text" class="form-control" formControlName="accountName"
+                                    placeholder="Tên tài khoản" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['accountName'].touched &&
+                                employeeForm.controls['accountName'].invalid,
+                              'is-valid':
+                                employeeForm.controls['accountName'].touched &&
+                                employeeForm.controls['accountName'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['accountName'].touched &&
+                              employeeForm.controls['accountName'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['accountName'].errors?.required">
+                                        Tên tài khoản là bắt buộc
+                                    </div>
+                                    <div *ngIf="
+                                employeeForm.controls['accountName'].errors?.minlength ||
+                                employeeForm.controls['accountName'].errors?.maxlength
+                              ">
+                                        Tên tài khoản có ít nhất 3 ký tự và tối đa 255 ký tự
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Số Tài Khoản -->
+                            <div class="form-group col-md-4">
+                                <label for="accountNumber">Số Tài Khoản</label>
+                                <input type="text" class="form-control" formControlName="accountNumber"
+                                    placeholder="Số Tài Khoản" [ngClass]="{
+                              'is-invalid':
+                                employeeForm.controls['accountNumber'].touched &&
+                                employeeForm.controls['accountNumber'].invalid,
+                              'is-valid':
+                                employeeForm.controls['accountNumber'].touched &&
+                                employeeForm.controls['accountNumber'].valid
+                            }" />
+                                <div class="invalid-feedback" *ngIf="
+                              employeeForm.controls['accountNumber'].touched &&
+                              employeeForm.controls['accountNumber'].invalid
+                            ">
+                                    <div *ngIf="employeeForm.controls['accountNumber'].errors?.required">
+                                        Số tài khoản là bắt buộc
+                                    </div>
+                                    <div *ngIf="employeeForm.controls['accountNumber'].errors?.pattern">
+                                        Số tài khoản chỉ được chứa các chữ số
+                                    </div>
+                                    <div *ngIf="
+                                employeeForm.controls['accountNumber'].errors?.minlength ||
+                                employeeForm.controls['accountNumber'].errors?.maxlength
+                              ">
+                                        Số tài khoản phải có ít nhất 10 và tối đa 20 ký tự
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer pt-1">
+                        <!-- Nếu là chế độ view, chỉ có nút đóng -->
+                        <button type="button" class="btn btn-secondary" (click)="onCloseEmployeeModal(modal)">
+                            Đóng
+                        </button>
+                        <!-- Nếu là chế độ add hoặc edit, hiển thị nút lưu -->
+                        <button *ngIf="modalMode !== 'view'" type="submit" class="btn btn-primary float-right"
+                            [disabled]="employeeForm.invalid || formLoading">
+                            <span *ngIf="formLoading" class="spinner-border spinner-border-sm mr-1"></span>
+                            Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </ng-template>
+</div>

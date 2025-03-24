@@ -1,0 +1,6 @@
+stages:
+ - hrm-frontend-build-test
+ - hrm-frontend-deploy-test
+ - hrm-frontend-env
+include:
+ - "cicd/qa.yaml"

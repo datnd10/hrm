@@ -1,0 +1,59 @@
+@import "@core/scss/angular/libs/datatables.component.scss";
+@import "@core/scss/base/pages/app-user.scss";
+@import "@core/scss/angular/libs/select.component.scss";
+@import "~ngx-toastr/toastr.css";
+/* Red border for invalid input */
+/* Red border for invalid input fields */
+input.is-invalid {
+  border-color: #e74c3c !important; /* Red border */
+  box-shadow: none; /* Remove any extra shadow */
+}
+
+/* Red color for error messages */
+.invalid-feedback {
+  color: #e74c3c; /* Red color for error text */
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.p-treetable .p-treetable-thead > tr > th {
+  text-align: left;
+  padding: 1rem 1rem;
+  border-bottom: 2px solid #ebe9f1;
+  border-width: 0 0 1px 0;
+  font-weight: 600;
+  color: #6e6b7b;
+  background: #f3f2f7;
+  transition: box-shadow 0.2s;
+}
+
+.p-treetable .p-treetable-tbody > tr > td {
+  text-align: left;
+  border-top: 1px solid #ebe9f1;
+  color: #6e6b7b;
+  background-color: #ffffff;
+  border-width: 0 0 1px 0;
+  padding: 1rem 1rem;
+}
+
+.dark-layout {
+  .p-treetable .p-treetable-thead > tr > th {
+    text-align: left;
+    padding: 1rem 1rem;
+    border: 1px solid #3b4253;
+    border-width: 0 0 1px 0;
+    font-weight: 600;
+    color: #d0d2d6;
+    background: #343d55;
+    transition: box-shadow 0.2s;
+  }
+
+  .p-treetable .p-treetable-tbody > tr > td {
+    text-align: left;
+    border: 1px solid #3b4253;
+    color: #b4b7bd;
+    background-color: #283046;
+    border-width: 0 0 1px 0;
+    padding: 1rem 1rem;
+  }
+}

@@ -1,0 +1,56 @@
+# Base Image
+FROM node:21.1.0-alpine AS base
+
+WORKDIR /app
+
+# Stage 1: Build the shared module
+FROM base AS shared-build
+
+# Install dependencies for the shared module
+COPY ./hrm-common/package*.json ./hrm-common/
+RUN cd ./hrm-common && npm install
+
+# Copy the shared module source code and build it
+COPY ./hrm-common ./hrm-common
+RUN cd ./hrm-common && npm run build
+
+# Stage 2: Build the service
+FROM base AS service-build
+
+# Arguments for the service name
+ARG SERVICE_NAME
+
+# Copy the shared module from the previous build stage
+COPY --from=shared-build /app/hrm-common ./hrm-common
+
+# Install dependencies for the service
+COPY ./${SERVICE_NAME}/package*.json ./${SERVICE_NAME}/
+RUN npm install --prefix ./${SERVICE_NAME}
+
+# Copy the service source code
+COPY ./${SERVICE_NAME} ./${SERVICE_NAME}/
+
+# Build the service
+RUN cd ./${SERVICE_NAME} && npm run build
+
+# Set timezone
+ENV TZ=Asia/Ho_Chi_Minh
+
+# Final Stage: Prepare minimal production image
+FROM base AS final-stage
+
+# Arguments for the service name
+ARG SERVICE_NAME
+
+WORKDIR /app
+
+# Copy necessary files from service-build stage
+COPY --from=service-build /app/${SERVICE_NAME}/dist ./dist
+COPY --from=service-build /app/${SERVICE_NAME}/node_modules ./node_modules
+COPY --from=service-build /app/${SERVICE_NAME}/package.json ./
+
+# Expose the port the application runs on
+EXPOSE 5000
+
+# Start the application (use start:prod for production)
+CMD ["npm", "run", "start:prod"]

@@ -1,0 +1,58 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  labels:
+    io.kompose.service: hrm-frontend
+  name: hrm-frontend 
+  namespace: hrm
+  annotations:
+    kubernetes.io/change-cause: ":prod"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: hrm-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        io.kompose.service: hrm-frontend
+    spec:
+      containers:
+        - image: harbor.heno.vn/hrm/frontend
+          imagePullPolicy: Always
+          name: hrm-frontend
+          ports:
+            - containerPort: 4200
+          resources: {}
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: harbor-orenda
+      - name: harbor-heno
+status: {} 
+--- 
+apiVersion: v1 
+kind: Service 
+metadata:
+  labels:
+    io.kompose.service: hrm-frontend    
+  name: hrm-frontend 
+  namespace: hrm  
+spec:
+  ports:
+    - name: "hrm-frontend-port"
+      port: 4200
+      targetPort: 4200
+      nodePort: 33080
+  selector:
+    io.kompose.service: hrm-frontend
+  type: NodePort
+status:
+  loadBalancer: {}

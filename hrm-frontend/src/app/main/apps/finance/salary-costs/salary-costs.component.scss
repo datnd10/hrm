@@ -1,0 +1,275 @@
+@import "@core/scss/angular/libs/datatables.component.scss";
+@import "@core/scss/base/pages/app-user.scss";
+@import "@core/scss/angular/libs/select.component.scss";
+@import "~ngx-toastr/toastr.css";
+
+/* Red border for invalid input fields */
+input.is-invalid {
+  border-color: #e74c3c !important; /* Red border */
+  box-shadow: none; /* Remove any extra shadow */
+}
+
+/* Red color for error messages */
+.invalid-feedback {
+  color: #e74c3c; /* Red color for error text */
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.p-treetable .p-treetable-thead > tr > th {
+  text-align: left;
+  padding: 1rem 1rem;
+  border-bottom: 2px solid #ebe9f1;
+  border-width: 0 0 1px 0;
+  font-weight: 600;
+  color: #6e6b7b;
+  background: #f3f2f7;
+  transition: box-shadow 0.2s;
+}
+
+.p-treetable .p-treetable-tbody > tr > td {
+  text-align: left;
+  border-top: 1px solid #ebe9f1;
+  color: #6e6b7b;
+  background-color: #ffffff;
+  border-width: 0 0 1px 0;
+  padding: 1rem 1rem;
+}
+
+/* Style for the upload section container */
+.form-group label {
+  font-weight: bold;
+  color: #333; /* Darker text for better contrast on light background */
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Style the file input field */
+.form-control-file {
+  display: inline-block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  color: #333; /* Dark text for light background */
+  background-color: #f8f9fa; /* Light gray background for file input */
+  border: 1px solid #ced4da; /* Subtle border to match light theme */
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+/* Remove default file input style */
+.form-control-file::-webkit-file-upload-button {
+  visibility: hidden;
+}
+
+.form-control-file::before {
+  content: "Choose File";
+  display: inline-block;
+  color: #495057; /* Slightly darker text for contrast */
+  background-color: #e9ecef; /* Light button color */
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Change text after file selection */
+.form-control-file:after {
+  content: attr(value);
+  display: inline-block;
+  color: #6c757d; /* Muted text color for selected file name */
+  margin-left: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Hover effect for file input */
+.form-control-file:hover::before {
+  background-color: #dee2e6; /* Slightly darker gray on hover */
+}
+
+/* Month picker overlay */
+.month-picker-overlay {
+  position: absolute;
+  z-index: 1000;
+  background-color: #ffffff; /* White background for light layout */
+  border: 1px solid #dee2e6; /* Subtle border color */
+  border-radius: 5px;
+  padding: 10px;
+  width: 250px;
+}
+
+.year-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #495057; /* Darker text for year selector */
+}
+
+.month-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.month-selector button {
+  background: #e9ecef; /* Light button color */
+  color: #495057; /* Darker text for contrast */
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.month-selector button:hover {
+  background: #dee2e6; /* Slightly darker gray on hover */
+}
+
+.year-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.year-nav-btn:hover {
+  background-color: #dee2e6; /* Slightly darker gray on hover */
+  color: #212529; /* Slightly darker text */
+  transform: scale(1.1);
+}
+
+.dark-layout {
+  .p-treetable .p-treetable-thead > tr > th {
+    text-align: left;
+    padding: 1rem 1rem;
+    border: 1px solid #3b4253;
+    border-width: 0 0 1px 0;
+    font-weight: 600;
+    color: #d0d2d6;
+    background: #343d55;
+    transition: box-shadow 0.2s;
+  }
+
+  .p-treetable .p-treetable-tbody > tr > td {
+    text-align: left;
+    border: 1px solid #3b4253;
+    color: #b4b7bd;
+    background-color: #283046;
+    border-width: 0 0 1px 0;
+    padding: 1rem 1rem;
+  }
+
+  /* Style for the upload section container */
+  .form-group label {
+    font-weight: bold;
+    color: #e0e0e0; /* Light gray text */
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Style the file input field */
+  .form-control-file {
+    display: inline-block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #e0e0e0;
+    background-color: #3c405a; /* Dark background color */
+    border: 1px solid #4c4f6a; /* Border matching the theme */
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+
+  /* Remove default file input style */
+  .form-control-file::-webkit-file-upload-button {
+    visibility: hidden;
+  }
+
+  .form-control-file::before {
+    content: "Choose File";
+    display: inline-block;
+    color: #e0e0e0;
+    background-color: #4c4f6a; /* Button color */
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    font-size: 1rem;
+  }
+
+  /* Change text after file selection */
+  .form-control-file:after {
+    content: attr(value);
+    display: inline-block;
+    color: #a0a0a0;
+    margin-left: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Hover effect for file input */
+  .form-control-file:hover::before {
+    background-color: #5a5e7a;
+  }
+
+  .month-picker-overlay {
+    position: absolute;
+    z-index: 1000;
+    background-color: #2e3b4e;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    width: 250px;
+  }
+
+  .year-selector {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #fff;
+  }
+
+  .month-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .month-selector button {
+    background: #4e5d6c;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .month-selector button:hover {
+    background: #6c7a89;
+  }
+  .year-nav-btn {
+    background-color: #3b4253; /* Màu nền tối */
+    color: #d0d2d6; /* Màu chữ sáng */
+    border: 1px solid #4c4f6a; /* Viền phù hợp với giao diện tối */
+    transition: all 0.3s ease;
+  }
+  .year-nav-btn:hover {
+    background-color: #4c4f6a; /* Sáng hơn một chút khi hover */
+    color: #ffffff; /* Màu chữ sáng hơn */
+    transform: scale(1.1); /* Tăng kích thước nhẹ khi hover */
+  }
+  .year-nav-btn:focus {
+    outline: none; /* Loại bỏ đường viền mặc định khi focus */
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5); /* Thêm hiệu ứng ánh sáng khi focus */
+  }
+}

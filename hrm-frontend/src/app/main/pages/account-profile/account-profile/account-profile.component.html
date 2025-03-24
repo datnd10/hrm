@@ -1,0 +1,474 @@
+<div class="container-fluid">
+  <div class="main-body">
+    <!-- Row for Avatar and Change Password -->
+    <div class="row gutters-sm d-flex align-items-stretch">
+      <!-- Avatar Section -->
+      <div class="col-md-5 mb-3">
+        <div class="card h-100">
+          <div class="card-body d-flex flex-column justify-content-center">
+            <div class="d-flex flex-column align-items-center text-center">
+              <img
+                src="../../../../assets/images/portrait/small/avatar-s-11.jpg"
+                alt="Admin"
+                class="rounded-circle"
+                width="150"
+              />
+              <div class="mt-3">
+                <h4>{{ employee?.fullName }}</h4>
+                <p class="text-secondary mb-1">{{ employee?.positionName }}</p>
+                <p class="text-muted font-size-sm">{{ employee?.address }}</p>
+                <button class="btn btn-primary mb-3">Thay avatar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Section -->
+      <div class="col-md-7 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h4 class="mt-1 mb-1 text-primary">Đổi mật khẩu</h4>
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+              <div class="form-group text-left">
+                <label for="currentPassword" class="label-custom"
+                  >Mật khẩu hiện tại</label
+                >
+                <input
+                  type="password"
+                  id="currentPassword"
+                  class="form-control"
+                  style="color: #d0d2d6"
+                  formControlName="currentPassword"
+                  placeholder="Nhập mật khẩu hiện tại"
+                />
+                <div
+                  *ngIf="
+                    passwordForm.get('currentPassword').invalid &&
+                    passwordForm.get('currentPassword').touched
+                  "
+                  class="text-danger"
+                >
+                  Mật khẩu hiện tại là bắt buộc và phải có ít nhất 6 ký tự.
+                </div>
+              </div>
+
+              <div class="form-group text-left">
+                <label for="newPassword" class="label-custom"
+                  >Mật khẩu mới</label
+                >
+                <input
+                  type="password"
+                  id="newPassword"
+                  class="form-control"
+                  formControlName="newPassword"
+                  style="color: #d0d2d6"
+                  placeholder="Nhập mật khẩu mới"
+                />
+                <div
+                  *ngIf="
+                    passwordForm.get('newPassword').invalid &&
+                    passwordForm.get('newPassword').touched
+                  "
+                  class="text-danger"
+                >
+                  Mật khẩu mới là bắt buộc và phải có ít nhất 6 ký tự.
+                </div>
+              </div>
+
+              <div class="form-group text-left">
+                <label for="confirmPassword" class="label-custom">
+                  Xác nhận mật khẩu
+                </label>
+
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  class="form-control"
+                  formControlName="confirmPassword"
+                  style="color: #d0d2d6"
+                  placeholder="Xác nhận mật khẩu mới"
+                />
+                <div
+                  *ngIf="
+                    passwordForm.hasError('mismatch') &&
+                    passwordForm.get('confirmPassword').touched
+                  "
+                  class="text-danger"
+                >
+                  Mật khẩu xác nhận không khớp với mật khẩu mới.
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary mt-1"
+                [disabled]="passwordForm.invalid"
+              >
+                Lưu
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-width Thông tin cá nhân Section -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card h-100">
+          <!-- Header -->
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h4 class="mb-0 text-primary">Thông tin cá nhân</h4>
+          </div>
+          <!-- Body -->
+          <div class="card-body">
+            <!-- Tên -->
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Tên</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                {{ employee?.fullName || "Không có thông tin" }}
+              </div>
+            </div>
+            <hr />
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Giới tính</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                <span
+                  *ngIf="
+                    employee?.gender === 'Nam' ||
+                      employee?.gender === 'Nữ' ||
+                      employee?.gender === 'Giới tính khác';
+                    else noInfo
+                  "
+                >
+                  <span *ngIf="employee?.gender === 'Nam'">Nam</span>
+                  <span *ngIf="employee?.gender === 'Nữ'">Nữ</span>
+                  <span *ngIf="employee?.gender === 'Giới tính khác'"
+                    >Giới tính khác</span
+                  >
+                </span>
+                <ng-template #noInfo>Không có thông tin</ng-template>
+              </div>
+            </div>
+            <hr />
+
+            <!-- Ngày sinh -->
+            <div class="row">
+              <div class="col-sm-3"><h6 class="mb-0">Ngày sinh</h6></div>
+              <div class="col-sm-9 text-secondary">
+                <span *ngIf="employee?.dateOfBirth; else noDOB">
+                  {{ employee?.dateOfBirth | date : "dd/MM/yyyy" }}
+                </span>
+                <ng-template #noDOB>Không có thông tin</ng-template>
+              </div>
+            </div>
+            <hr />
+            <!-- Email -->
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Email</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                {{ employee?.email || "Không có thông tin" }}
+              </div>
+            </div>
+            <hr />
+            <!-- Căn cước công dân -->
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Căn cước công dân</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                {{ employee?.idCard || "Không có thông tin" }}
+              </div>
+            </div>
+            <hr />
+            <!-- Mã số thuế -->
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Mã số thuế</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                {{ employee?.taxCode || "Không có thông tin" }}
+              </div>
+            </div>
+            <hr />
+            <!-- Số điện thoại -->
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Số điện thoại</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                {{ employee?.phoneNumber || "Không có thông tin" }}
+              </div>
+            </div>
+            <hr />
+            <!-- Địa chỉ -->
+            <div class="row">
+              <div class="col-sm-3">
+                <h6 class="mb-0">Địa chỉ</h6>
+              </div>
+              <div class="col-sm-9 text-secondary">
+                {{ employee?.specificAddress || "Không có địa chỉ" }},
+                {{ employee?.district || "" }}, {{ employee?.ward || "" }},
+                {{ employee?.province || "" }}
+              </div>
+            </div>
+            <hr />
+            <!-- Button -->
+            <div class="row">
+              <div class="col-sm-12">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="openModal()"
+                >
+                  Chỉnh sửa Thông tin
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Structure -->
+<div
+  class="modal fade"
+  id="updateEmployeeModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="updateEmployeeModalLabel"
+  aria-hidden="true"
+  [ngClass]="{ 'show d-block': isModalOpen }"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cập nhật thông tin cá nhân</h5>
+        <button
+          type="button"
+          class="close"
+          (click)="closeModal()"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="editEmployeeForm">
+          <h5>Chỉnh sửa thông tin</h5>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="fullName">Họ và Tên</label>
+              <input
+                type="text"
+                id="fullName"
+                class="form-control"
+                formControlName="fullName"
+                placeholder="Họ và tên"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('fullName').invalid &&
+                  editEmployeeForm.get('fullName').touched
+                "
+                class="text-danger"
+              >
+                Tên là bắt buộc và phải có ít nhất 3 ký tự.
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="gender">Giới tính</label>
+              <select id="gender" class="form-control" formControlName="gender">
+                <option value="">Chọn giới tính</option>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+              </select>
+              <div
+                *ngIf="
+                  editEmployeeForm.get('gender').invalid &&
+                  editEmployeeForm.get('gender').touched
+                "
+                class="text-danger"
+              >
+                Vui lòng chọn giới tính.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="dateOfBirth">Ngày sinh</label>
+              <input
+                type="date"
+                id="dateOfBirth"
+                class="form-control"
+                formControlName="dateOfBirth"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('dateOfBirth').invalid &&
+                  editEmployeeForm.get('dateOfBirth').touched
+                "
+                class="text-danger"
+              >
+                <div
+                  *ngIf="
+                    editEmployeeForm.get('dateOfBirth').hasError('required')
+                  "
+                >
+                  Ngày sinh là bắt buộc.
+                </div>
+                <div
+                  *ngIf="
+                    editEmployeeForm.get('dateOfBirth').hasError('futureDate')
+                  "
+                >
+                  Ngày sinh không được chọn là ngày trong tương lai.
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                formControlName="email"
+                placeholder="Email"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('email').invalid &&
+                  editEmployeeForm.get('email').touched
+                "
+                class="text-danger"
+              >
+                Vui lòng nhập email hợp lệ.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="taxCode">Mã số thuế</label>
+              <input
+                type="text"
+                id="taxCode"
+                class="form-control"
+                formControlName="taxCode"
+                placeholder="Mã số thuế"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('taxCode').invalid &&
+                  editEmployeeForm.get('taxCode').touched
+                "
+                class="text-danger"
+              >
+                <div
+                  *ngIf="editEmployeeForm.get('taxCode').hasError('required')"
+                >
+                  Mã số thuế là bắt buộc.
+                </div>
+                <div
+                  *ngIf="editEmployeeForm.get('taxCode').hasError('pattern')"
+                >
+                  Mã số thuế không đúng định dạng. (10 hoặc 13 chữ số)
+                </div>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="idCard">Căn cước công dân</label>
+              <input
+                type="text"
+                id="idCard"
+                class="form-control"
+                formControlName="idCard"
+                placeholder="Căn cước công dân"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('idCard').invalid &&
+                  editEmployeeForm.get('idCard').touched
+                "
+                class="text-danger"
+              >
+                Căn cước công dân phải từ 9-12 chữ số.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="phoneNumber">Số điện thoại</label>
+              <input
+                type="text"
+                id="phoneNumber"
+                class="form-control"
+                formControlName="phoneNumber"
+                placeholder="Số điện thoại"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('phoneNumber').invalid &&
+                  editEmployeeForm.get('phoneNumber').touched
+                "
+                class="text-danger"
+              >
+                Số điện thoại phải là 10-11 chữ số.
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="specificAddress">Địa chỉ</label>
+              <input
+                type="text"
+                id="specificAddress"
+                class="form-control"
+                formControlName="specificAddress"
+                placeholder="Địa chỉ"
+              />
+              <div
+                *ngIf="
+                  editEmployeeForm.get('specificAddress').invalid &&
+                  editEmployeeForm.get('specificAddress').touched
+                "
+                class="text-danger"
+              >
+                Địa chỉ là bắt buộc.
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeModal()"
+            >
+              Đóng
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              (click)="saveEmployee()"
+              [disabled]="editEmployeeForm.invalid"
+            >
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

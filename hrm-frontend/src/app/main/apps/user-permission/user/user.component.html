@@ -1,0 +1,316 @@
+<div class="content-wrapper p-0">
+  <div class="content-body">
+    <!-- User List -->
+    <section class="users-list-wrapper">
+      <div class="card">
+        <h5 class="card-header">Tìm kiếm</h5>
+        <div class="card-body">
+          <div class="users-list-filter">
+            <form>
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <ng-select
+                      [items]="statusOptions"
+                      [(ngModel)]="searchByStatus"
+                      name="status"
+                      bindLabel="name"
+                      bindValue="value"
+                      placeholder=" Chọn trạng thái"
+                      (change)="filterByStatus($event)"
+                    ></ng-select>
+                  </fieldset>
+                </div>
+                <div class="col-12 col-md-6">
+                  <fieldset class="form-group">
+                    <input
+                      type="text"
+                      [(ngModel)]="searchByName"
+                      #searchInput
+                      name="search"
+                      placeholder="Tìm kiếm"
+                      class="form-control"
+                      (keyup.enter)="onSearch(searchInput.value)"
+                    />
+                  </fieldset>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div *ngIf="loading" class="text-center my-5">
+          <!-- Bạn có thể thêm một spinner ở đây nếu muốn -->
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden"></span>
+          </div>
+          <div>Đang tải dữ liệu...</div>
+        </div>
+
+        <app-table
+          *ngIf="!loading"
+          [showExportImportButton]="false"
+          [showChangeStatusButton]="false"
+          [showActionButton]="true"
+          [tableTitle]="tableTitle"
+          [tableData]="branchsArray"
+          [columnArray]="columnArray"
+          [totalItems]="totalItems"
+          [itemsPerPage]="itemsPerPage"
+          [currentPage]="currentPage"
+          [totalPages]="totalPage"
+          (onPageChange)="onPageChange($event)"
+          (onItemsPerPageChange)="onItemsPerPageChange($event)"
+          (onEdit)="editBranch($event)"
+          (onDelete)="deleteBranch($event)"
+          (onSendSelected)="handleSendSelected($event)"
+          (onAdd)="addBranch()"
+          (onView)="viewBranch($event)"
+          (onSortChange)="onSortChange($event)"
+        ></app-table>
+      </div>
+    </section>
+    <!--/ User List -->
+  </div>
+
+  <!-- New Branch -->
+
+  <ng-template #modalBasic let-modal>
+    <div class="modal-header">
+      <h4 class="modal-title" id="myModalLabel1">
+        <ng-container *ngIf="modalMode === 'add'"
+          >Thêm mới người dùng</ng-container
+        >
+        <ng-container *ngIf="modalMode === 'edit'"
+          >Chỉnh sửa người dùng</ng-container
+        >
+        <ng-container *ngIf="modalMode === 'view'"
+          >Xem chi tiết người dùng</ng-container
+        >
+      </h4>
+      <button
+        type="button"
+        class="close"
+        (click)="onCloseModal(modal)"
+        aria-label="Close"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body" tabindex="0" ngbAutofocus>
+      <div *ngIf="modalLoading" class="text-center my-3">
+        <span class="spinner-border spinner-border-lg"></span> Đang tải dữ
+        liệu...
+      </div>
+
+      <div class="form-area" *ngIf="!modalLoading">
+        <form [formGroup]="form" (ngSubmit)="onSubmitReactiveForm(modal)">
+          <!-- Row 1: Họ tên, Số điện thoại, Email -->
+          <div class="form-row">
+            <!-- Họ tên -->
+            <div class="form-group col-md-4">
+              <label for="fullName"
+                >Họ tên <span class="text-danger">(*)</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Nguyễn Văn A"
+                formControlName="fullName"
+              />
+            </div>
+
+            <!-- Số điện thoại -->
+            <div class="form-group col-md-4">
+              <label for="phoneNumber"
+                >Số điện thoại <span class="text-danger">(*)</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                placeholder="0868686868"
+                formControlName="phoneNumber"
+              />
+            </div>
+
+            <!-- Email -->
+            <div class="form-group col-md-4">
+              <label for="email"
+                >Email <span class="text-danger">(*)</span></label
+              >
+              <input
+                type="email"
+                class="form-control"
+                placeholder="nguyenvana@gmail.com"
+                formControlName="email"
+              />
+            </div>
+          </div>
+
+          <!-- Row 2: Loại người dùng, Bộ phận, Chức danh -->
+          <div class="form-row">
+            <!-- Loại người dùng -->
+            <div class="form-group col-md-4">
+              <label for="userType"
+                >Loại người dùng <span class="text-danger">(*)</span></label
+              >
+              <ng-select
+                [items]="userTypes"
+                bindLabel="name"
+                bindValue="code"
+                formControlName="userType"
+                placeholder="Chọn loại người dùng"
+              >
+              </ng-select>
+            </div>
+
+            <!-- Bộ phận -->
+            <div class="form-group col-md-4">
+              <label for="department">Bộ phận</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Kế toán"
+                formControlName="department"
+              />
+            </div>
+
+            <!-- Chức danh -->
+            <div class="form-group col-md-4">
+              <label for="position">Chức danh</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Nhân viên"
+                formControlName="position"
+              />
+            </div>
+          </div>
+
+          <!-- Row 3: Mật khẩu, Xác nhận mật khẩu -->
+          <div class="form-row">
+            <!-- Mật khẩu -->
+            <div class="form-group col-md-6">
+              <label for="password"
+                >Mật khẩu <span class="text-danger">(*)</span></label
+              >
+              <input
+                type="password"
+                class="form-control"
+                placeholder="Mật khẩu"
+                formControlName="password"
+              />
+            </div>
+
+            <!-- Xác nhận mật khẩu -->
+            <div class="form-group col-md-6">
+              <label for="confirmPassword"
+                >Xác nhận mật khẩu <span class="text-danger">(*)</span></label
+              >
+              <input
+                type="password"
+                class="form-control"
+                placeholder="Xác nhận mật khẩu"
+                formControlName="confirmPassword"
+              />
+            </div>
+          </div>
+
+          <!-- Row 4: Chọn chỉnh nhánh quản lý, Hoạt động -->
+          <div class="form-row">
+            <!-- Chọn chi nhánh quản lý -->
+            <div class="form-group col-md-12">
+              <label for="managementBase">Chọn chi nhánh quản lý</label>
+              <ng-select
+                [items]="bases"
+                bindLabel="name"
+                bindValue="code"
+                formControlName="managementBase"
+                placeholder="Chi nhánh"
+              >
+              </ng-select>
+            </div>
+          </div>
+          <!-- Hoạt động -->
+          <div class="form-group">
+            <label class="switch">
+              <input type="checkbox" formControlName="status" />
+              <span class="slider round"></span>
+            </label>
+            <label for="status" class="ml-1">Hoạt động</label>
+          </div>
+
+          <div class="modal-footer pt-1">
+            <button
+              *ngIf="modalMode === 'view'"
+              type="button"
+              class="btn btn-secondary"
+              (click)="modal.close()"
+            >
+              Huỷ
+            </button>
+            <button
+              *ngIf="modalMode !== 'view'"
+              type="submit"
+              class="btn btn-primary float-right"
+              [disabled]="form.invalid || formLoading"
+            >
+              <span
+                *ngIf="formLoading"
+                class="spinner-border spinner-border-sm mr-1"
+              ></span>
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #modalDelete let-modal>
+    <div class="modal-header">
+      <h5 class="modal-title">Xác nhận xóa</h5>
+      <button
+        type="button"
+        class="close"
+        aria-label="Close"
+        (click)="modal.dismiss('Cross click')"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="selectedBranch">
+        Bạn có chắc chắn muốn xóa chi nhánh
+        <strong>{{ selectedBranch?.branchName }}</strong> không?
+      </p>
+      <p *ngIf="!selectedBranch">
+        Bạn có chắc chắn muốn xóa các chi nhánh đã chọn không?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="modal.dismiss('cancel')"
+      >
+        Hủy
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="deleteSelectedBranches(modal)"
+        [disabled]="deleteLoading"
+      >
+        <span
+          *ngIf="deleteLoading"
+          class="spinner-border spinner-border-sm mr-1"
+        ></span>
+        Xóa
+      </button>
+    </div>
+  </ng-template>
+
+  <!--/ New User Sidebar -->
+</div>

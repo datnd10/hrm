@@ -1,0 +1,32 @@
+.input-group {
+  display: flex; /* Đảm bảo các phần tử trong input-group nằm trên cùng một dòng */
+  align-items: center; /* Căn giữa theo chiều dọc */
+}
+
+.input-container {
+  position: relative;
+  flex: 1; /* Cho phép input chiếm toàn bộ chiều rộng còn lại */
+}
+
+.input-container .form-control {
+  padding-right: 2rem; /* Chừa khoảng trống bên phải để không bị che bởi nút "x" */
+}
+
+.input-container .clear-icon {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem; /* Canh bên phải của input */
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  z-index: 2;
+}
+
+.input-container .clear-icon:hover {
+  color: #dc3545; /* Màu đỏ khi hover */
+}
+
+.input-group-append {
+  display: flex;
+  align-items: center; /* Căn giữa biểu tượng lịch theo chiều dọc */
+}
